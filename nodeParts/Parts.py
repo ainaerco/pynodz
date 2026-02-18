@@ -85,7 +85,7 @@ class NodeInput(QtWidgets.QGraphicsRectItem):
         # self.parent.connector = self
         cursor = QCursor(Qt.ArrowCursor)
         drag.setDragCursor(cursor.pixmap(), Qt.CopyAction)
-        drag.exec_(Qt.CopyAction)
+        drag.exec(Qt.CopyAction)
 
     def paint(self, painter, option, widget=None):
         painter.setBrush(self.brush)
@@ -127,7 +127,7 @@ class NodeResize(QGraphicsSvgItem):
         mime.setData("node/resize", data)
         mime.setObject(self.node)
         drag.setMimeData(mime)
-        drag.exec_(Qt.MoveAction)
+        drag.exec(Qt.MoveAction)
 
 
 class DropDown(QtWidgets.QGraphicsPixmapItem):

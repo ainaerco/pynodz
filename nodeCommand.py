@@ -126,7 +126,7 @@ class CommandSetNodeAttribute(QUndoCommand):
         nodes = [nodeUtils.options.nodes[x] for x in self.node_ids]
         if "name" in self.dict.keys():
             self.undo_dict = []
-            for node in nodes:
+            for i, node in enumerate(nodes):
                 self.undo_dict += [node.toDict()]
                 node.fromDict(self.dict)
                 node.name = self.new_names[i]

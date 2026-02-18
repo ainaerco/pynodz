@@ -24,7 +24,7 @@ class NodeControl(Node):
         self.attrNames = {}
         for key in self.values.keys():
             c = self.values[key].__class__
-            if c == float:
+            if c is float:
                 attr = {
                     "default": 0,
                     "type": "FLOAT",
@@ -32,7 +32,7 @@ class NodeControl(Node):
                     "value": self.values[key],
                 }
                 self.pinUnpin(attr, True)
-            elif c == list and len(self.values[key]) == 3:
+            elif c is list and len(self.values[key]) == 3:
                 attr = {
                     "default": [0, 0, 0],
                     "type": "VECTOR",
@@ -40,7 +40,7 @@ class NodeControl(Node):
                     "value": self.values[key],
                 }
                 self.pinUnpin(attr, True)
-            elif c == str or c is unicode:
+            elif c is str:
                 attr = {
                     "default": "",
                     "type": "STRING",
@@ -62,14 +62,13 @@ class NodeControl(Node):
     def updateGeometry(self):
         # self.prepareGeometryChange()
         margin = self.graphicLayout.spacing()
-        (l, t, r, b) = self.graphicLayout.getContentsMargins()
+        (left, t, r, b) = self.graphicLayout.getContentsMargins()
         height = t
-        width = self.rect.width()
+        width = self._rect.width()
         for i in range(self.graphicLayout.count()):
             item = self.graphicLayout.itemAt(i)
             height += item.rect.height() + margin
-            width = item.rect.width() + l + r
-
+            width = item.rect.width() + left + r
         height += b
         self.resize(width, height)
         QtWidgets.QGraphicsWidget.updateGeometry(self)
@@ -111,7 +110,7 @@ class NodeControl(Node):
 
         # self.setRect(self.form.boundingRect())
         self.updateGeometry()
-        p = item.pos() + self.rect.topRight() + item.rect.bottomLeft() * 0.5
+        p = item.pos() + self._rect.topRight() + item.rect.bottomLeft() * 0.5
 
         connector.setPos(p.x() - item.pos().x(), p.y())
 
@@ -120,7 +119,7 @@ class NodeControl(Node):
         addFloatControl = menu.addAction("Add Float Control")
         addVectorControl = menu.addAction("Add Vector Control")
         addStringControl = menu.addAction("Add String Control")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == addFloatControl:
             name = "float_control"
             name = incrementName(name, self.attrNames)
@@ -169,7 +168,7 @@ class NodeControl(Node):
             x.attr for x in self.connections if x.child == self and x.attr
         ]
         clas = getAttrByType(attr["type"])
-        if clas == None:
+        if clas is None:
             clas = NodeAttr
         item = clas(self, nodeUtils.options, attr)
         if attr["name"] in self.values.keys():

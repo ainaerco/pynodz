@@ -1,6 +1,6 @@
 import webbrowser
-from qtpy.QtGui import *
-from qtpy.QtCore import *
+from qtpy.QtGui import QFont, QColor
+from qtpy.QtCore import Qt, QRectF, QUrl, QFileInfo
 from qtpy import QtWidgets
 import nodeUtils
 from nodeCommand import CommandSetNodeAttribute
@@ -9,11 +9,12 @@ from nodeParts.Parts import TitleItem, NodeResize
 from htmlEditor import HtmlEditor
 
 icon_size = 24
+ICONS = {}
 
 
 class BookmarkNode(Node):
     def __init__(self, d, dialog=None):
-        Node.__init__(self, d, dialog)
+        super().__init__(d, dialog)
 
         # self.nameItem = QGraphicsTextEditItem(self.name, self, 'name')
         self.url = d.get("url")
@@ -27,10 +28,9 @@ class BookmarkNode(Node):
             url = QUrl(self.url)
             fi = QFileInfo(url.toLocalFile())
             typ = self.dialog.systemIcons().type(fi)
-            global icons
             if typ != "Unknown":
-                if icons.keys(typ):
-                    pix = icons[typ]
+                if typ in ICONS:
+                    pix = ICONS[typ]
                 else:
                     pix = (
                         self.dialog.systemIcons()
@@ -39,13 +39,13 @@ class BookmarkNode(Node):
                     )
                     if pix.height() > 16:
                         pix = pix.scaled(16, 16)
-                    icons[typ] = pix
+                    ICONS[typ] = pix
 
                 self.icon = pix
                 self.iconItem = QtWidgets.QGraphicsPixmapItem(pix, self)
                 self.iconItem.setPos(5, 5)
 
-        self.setRect(self.rect)
+        self.setRect(self._rect)
         self.setFlag(QtWidgets.QGraphicsItem.ItemClipsChildrenToShape)
 
     def addExtraControls(self):
@@ -57,9 +57,9 @@ class BookmarkNode(Node):
     #     miny = minx + ((self.dialog.showUrlsAction.isChecked() and self.dialog.showNamesAction.isChecked()) and 10 or 0)
     #     maxy = -miny
     #     minmaxRect = QRectF(minx, miny, 256, maxy)
-    #     self.rect = rect
-    #     self.rect.setWidth(max(minmaxRect.left(), min(self.rect.width(), minmaxRect.right())))
-    #     self.rect.setHeight(max(minmaxRect.top(), min(self.rect.height(), minmaxRect.bottom())))
+    #     self._rect = rect
+    #     self._rect.setWidth(max(minmaxRect.left(), min(self._rect.width(), minmaxRect.right())))
+    #     self._rect.setHeight(max(minmaxRect.top(), min(self._rect.height(), minmaxRect.bottom())))
 
     #     self.nameItem.prepareGeometryChange()
     #     self.nameItem.setPos(self.icon and (self.dialog.showIconsAction.isChecked() and icon_size or -4) + 8 or 2,
@@ -73,7 +73,7 @@ class BookmarkNode(Node):
     #                                 self.dialog.showIconsAction.isChecked() and icon_size or 0 + self.dialog.showNamesAction.isChecked() and icon_size or 0)
     #     if self.resize:
     #         self.resize.prepareGeometryChange()
-    #         self.resize.setPos(self.rect.right(), self.rect.bottom())
+    #         self.resize.setPos(self._rect.right(), self._rect.bottom())
     #     self.setColor(self.color)
 
     def fromDict(self, d):
@@ -104,7 +104,7 @@ class BookmarkNode(Node):
         editUrlAction = menu.addAction("Edit url")
         copyUrlAction = menu.addAction("Copy url")
         editKeywordsAction = menu.addAction("Edit keywords")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == setIconAction:
             f, mask = QtWidgets.QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
@@ -115,11 +115,15 @@ class BookmarkNode(Node):
                     CommandSetNodeAttribute([self], {"icon": f})
                 )
         elif action == editNameAction:
-            self.nameItem.setTextInteractionFlags(Qt.TextEditorInteraction)
-            self.nameItem.setFocus(Qt.MouseFocusReason)
+            self.nameItem.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextEditorInteraction
+            )
+            self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)
         elif action == editUrlAction:
-            self.urlItem.setTextInteractionFlags(Qt.TextEditorInteraction)
-            self.urlItem.setFocus(Qt.MouseFocusReason)
+            self.urlItem.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextEditorInteraction
+            )
+            self.urlItem.setFocus(Qt.FocusReason.MouseFocusReason)
         elif action == copyUrlAction:
             QtWidgets.QApplication.clipboard().setText(self.url)
         elif action == editKeywordsAction:

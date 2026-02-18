@@ -1,5 +1,5 @@
-from qtpy.QtGui import *
-from qtpy.QtCore import *
+from qtpy.QtGui import QFontMetrics, QColor, QLinearGradient, QBrush
+from qtpy.QtCore import QPointF
 from .Node import Node
 from nodeCommand import CommandMoveNode
 import nodeUtils
@@ -20,7 +20,7 @@ class NodeGraph(Node):
 
     def setRect(self, rect):
         fm = QFontMetrics(nodeUtils.options.titleFont)
-        width = max(rect.width(), fm.width(self.name) + 20)
+        width = max(rect.width(), fm.horizontalAdvance(self.name) + 20)
         rect.setWidth(width)
         Node.setRect(self, rect)
 
@@ -30,7 +30,9 @@ class NodeGraph(Node):
             c = c.darker(150)
             c.setAlpha(255)
             self.shadow.setColor(c)
-        gradient = QLinearGradient(self.rect.topLeft(), self.rect.bottomRight())
+        gradient = QLinearGradient(
+            self._rect.topLeft(), self._rect.bottomRight()
+        )
         color = QColor()
         color.setHsv(
             self.color.hue(),
@@ -44,7 +46,7 @@ class NodeGraph(Node):
         self.update()
 
     def alignChilds(self):
-        x = self.pos().x() + self.boundingRect().width() + 50
+        x = self.pos().x() + self._rect.width() + 50
         y = 0
 
         def getKey(item):
@@ -52,13 +54,13 @@ class NodeGraph(Node):
 
         self.childs = sorted(self.childs, key=getKey)
         for child in self.childs:
-            y += child.boundingRect().height() + 5
-        y = self.pos().y() + self.boundingRect().center().y() - y * 0.5
+            y += child._rect.height() + 5
+        y = self.pos().y() + self._rect.center().y() - y * 0.5
         positions = []
         for child in self.childs:
             positions += [QPointF(x, y)]
             child.old_pos = child.pos()
-            y += child.boundingRect().height() + 5
+            y += child._rect.height() + 5
         nodeUtils.options.undoStack.push(
             CommandMoveNode(self.childs, positions)
         )

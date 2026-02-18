@@ -1,5 +1,5 @@
-from qtpy.QtGui import *
-from qtpy.QtCore import *
+from qtpy.QtGui import QPainterPath, QTransform
+from qtpy.QtCore import Qt, QRectF
 from qtpy import QtWidgets
 
 from .Node import Node
@@ -22,15 +22,15 @@ class NodeBlock(Node):
 
     def shape(self):
         t = QTransform()
-        t.scale(self.rect.width(), self.rect.height())
-        return self.path * t
+        t.scale(self._rect.width(), self._rect.height())
+        return t.map(self.path)
 
     def setRect(self, rect):
 
         Node.setRect(self, rect)
         # self.nameItem.prepareGeometryChange()
         if self.connector:
-            self.connector.setPos(self.rect.center().x(), self.rect.bottom())
+            self.connector.setPos(self._rect.center().x(), self._rect.bottom())
         if self.nameItem:
             self.nameItem.setPos(
                 rect.center().x() - self.nameItem.boundingRect().width() * 0.5,
@@ -55,9 +55,9 @@ class NodeBlock(Node):
         setCircleAction = menu.addAction("Shape Circle")
         setDiamondAction = menu.addAction("Shape Diamond")
 
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == setIconAction:
-            f, mask = QtWidgets.QFileDialog.getOpenFileName(
+            f, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if f:
@@ -70,8 +70,10 @@ class NodeBlock(Node):
                 CommandSetNodeAttribute([self], {"icon": None})
             )
         elif action == editNameAction:
-            self.nameItem.setTextInteractionFlags(Qt.TextEditorInteraction)
-            self.nameItem.setFocus(Qt.MouseFocusReason)
+            self.nameItem.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextEditorInteraction
+            )
+            self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)
 
         elif action == setRectAction:
             self.path = QPainterPath()
@@ -119,7 +121,7 @@ class NodeBlock(Node):
         # c.setRgb(min(255, c.red() * 0.8), min(255, c.green() * 0.8), min(255, c.blue() * 0.8))
         # painter.setPen(QPen(c, 1))
         t = QTransform()
-        t.scale(self.rect.width(), self.rect.height())
+        t.scale(self._rect.width(), self._rect.height())
 
-        painter.drawPath(self.path * t)
+        painter.drawPath(t.map(self.path))
         # painter.drawRoundedRect(r, nodeUtils.options.nodeRadius - 1, nodeUtils.options.nodeRadius - 1)

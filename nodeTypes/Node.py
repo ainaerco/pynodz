@@ -21,13 +21,13 @@ class Node(QtWidgets.QGraphicsWidget):
         self.init(d)
         self.nameItem = TitleItem(self.display_name, self, "display_name")
 
-        self.pen = QPen(Qt.black, 1.5)
+        self.pen = QPen(Qt.GlobalColor.black, 1.5)
         self.addExtraControls()
-        self.setRect(self.rect)
+        self.setRect(self._rect)
         self.timer = QTimer()
         self.timer.setInterval(QtWidgets.QApplication.startDragTime())
         self.timer.setSingleShot(True)
-        self.mouseReleased = False
+        self._mouseReleased = False
         self.timer.timeout.connect(self.onTimer)
 
     def addExtraControls(self):
@@ -48,8 +48,8 @@ class Node(QtWidgets.QGraphicsWidget):
         self.dropdown = None
         self.shadow = None
         self.urlItem = None
-        self.htmlItem = None
         self.nameItem = None
+        self.htmlItem = None
         self.iconItem = None
         self.name = ""
         self.display_name = ""
@@ -61,20 +61,20 @@ class Node(QtWidgets.QGraphicsWidget):
         self.setSelected(False)
         width = d.get("width", 90)
         height = d.get("height", 24)
-        self.rect = d.get("rect", QRectF(0, 0, width, height))
+        self._rect = d.get("rect", QRectF(0, 0, width, height))
 
-        self.setTransformOriginPoint(self.rect.center())
+        self.setTransformOriginPoint(self._rect.center())
         if "rot" in d.keys():
             self.setRotation(d["rot"])
 
         self.html = ""
 
-        if self.dialog.showShadowsAction.isChecked():
+        if self.dialog and self.dialog.showShadowsAction.isChecked():
             self.addShadow()
 
         self.setColor(QColor(d.get("rgb", "#fafafa")))
 
-        self.selected = False
+        self._selected = False
         self.setZValue(1)
 
         self.old_pos = QPointF()
@@ -100,28 +100,28 @@ class Node(QtWidgets.QGraphicsWidget):
         self.shadow.setBlurRadius(8)
         self.setGraphicsEffect(self.shadow)
 
-    def setCollapsed(self, state):
+    def setCollapsed(self, collapsed: bool):
         for c in self.childs:
             if c.__class__ == Node or c.__class__ == Node:
                 c.setCollapsed(False)
                 # c.dropdown.setState(True)
-                c.setVisible(state)
+                c.setVisible(collapsed)
                 for con in c.connections:
                     if con.parent != self:
                         con.setVisible(False)
                     else:
-                        con.setVisible(state)
+                        con.setVisible(collapsed)
             else:  # c.__class__==BookmarkNode:
-                c.setVisible(state)
+                c.setVisible(collapsed)
                 for con in c.connections:
-                    con.setVisible(state)
-        self.collapsed = not state
-        if state is True:
+                    con.setVisible(collapsed)
+        self.collapsed = not collapsed
+        if collapsed is True:
             # self.alignChilds()
             nodeUtils.options.setSelection([self])
 
     def alignChilds(self):
-        x = self.pos().x() + self.boundingRect().width() + 50
+        x = self.pos().x() + self._rect.width() + 50
         y = 0
 
         def getKey(item):
@@ -130,7 +130,7 @@ class Node(QtWidgets.QGraphicsWidget):
         self.childs = sorted(self.childs, key=getKey)
         for child in self.childs:
             y += child.boundingRect().height() + 5
-        y = self.pos().y() + self.boundingRect().center().y() - y * 0.5
+        y = self.pos().y() + self._rect.center().y() - y * 0.5
         positions = []
         for child in self.childs:
             positions += [QPointF(x, y)]
@@ -190,8 +190,8 @@ class Node(QtWidgets.QGraphicsWidget):
         res["keywords"] = self.keywords
         res["posx"] = round(self.pos().x(), 2)
         res["posy"] = round(self.pos().y(), 2)
-        res["width"] = round(self.rect.width(), 2)
-        res["height"] = round(self.rect.height(), 2)
+        res["width"] = round(self._rect.width(), 2)
+        res["height"] = round(self._rect.height(), 2)
         res["rgb"] = str(self.color.name())
         if self.rotation() != 0:
             res["rot"] = self.rotation()
@@ -200,8 +200,8 @@ class Node(QtWidgets.QGraphicsWidget):
             res["icon"] = self.icon
         return res
 
-    def setPos(self, *args):
-        QtWidgets.QGraphicsWidget.setPos(self, *args)
+    def setPos(self, x, y):
+        QtWidgets.QGraphicsWidget.setPos(self, x, y)
         for c in self.connections:
             c.prepareGeometryChange()
             c.updatePath()
@@ -214,7 +214,9 @@ class Node(QtWidgets.QGraphicsWidget):
             c = c.darker(150)
             c.setAlpha(150)
             self.shadow.setColor(c)
-        gradient = QLinearGradient(self.rect.topLeft(), self.rect.bottomRight())
+        gradient = QLinearGradient(
+            self._rect.topLeft(), self._rect.bottomRight()
+        )
         color = QColor()
         color.setHsv(
             self.color.hue(),
@@ -228,8 +230,11 @@ class Node(QtWidgets.QGraphicsWidget):
         self.update()
 
     def sizeHint(self, which, constraint):
-        if which == Qt.MinimumSize or which == Qt.PreferredSize:
-            return QSizeF(self.rect.width(), self.rect.height())
+        if (
+            which == Qt.SizeHint.MinimumSize
+            or which == Qt.SizeHint.PreferredSize
+        ):
+            return QSizeF(self._rect.width(), self._rect.height())
         # elif which==Qt.MaximumSize:
         #     return QSizeF(1000,1000)
         return constraint
@@ -243,31 +248,31 @@ class Node(QtWidgets.QGraphicsWidget):
         # self.minmaxRect = QRectF(nodeUtils.options.iconSize, nodeUtils.options.iconSize, 500, 1000)
         # rect.setWidth(rect.width())
         # rect.setHeight(rect.height())
-        self.rect = rect
-        # self.rect.setWidth(max(self.minmaxRect.left(), min(self.rect.width(), self.minmaxRect.width())))
-        # self.rect.setHeight(max(self.minmaxRect.top(), min(self.rect.height(), self.minmaxRect.height())))
+        self._rect = rect
+        # self._rect.setWidth(max(self.minmaxRect.left(), min(self._rect.width(), self.minmaxRect.width())))
+        # self._rect.setHeight(max(self.minmaxRect.top(), min(self._rect.height(), self.minmaxRect.height())))
 
         if self.connector:
             self.connector.prepareGeometryChange()
-            # self.connector.setPos(self.rect.center().x(),self.rect.bottom())
-            self.connector.setPos(self.rect.right(), self.rect.center().y())
+            # self.connector.setPos(self._rect.center().x(),self._rect.bottom())
+            self.connector.setPos(self._rect.right(), self._rect.center().y())
         if self.resizeItem:
             self.resizeItem.prepareGeometryChange()
             self.resizeItem.setPos(
-                self.rect.right() - self.resizeItem.boundingRect().width() / 2,
-                self.rect.bottom()
+                self._rect.right() - self.resizeItem.boundingRect().width() / 2,
+                self._rect.bottom()
                 - self.resizeItem.boundingRect().height() / 2,
             )
         if self.nameItem:
             self.nameItem.prepareGeometryChange()
             self.nameItem.setPos(
-                self.rect.center().x()
+                self._rect.center().x()
                 - self.nameItem.boundingRect().width() * 0.5,
                 0,
             )
         if self.dropdown:
             self.dropdown.setPos(
-                self.rect.right() - self.dropdown.boundingRect().width() - 8, 3
+                self._rect.right() - self.dropdown.boundingRect().width() - 8, 3
             )
         self.setColor(self.color)
         if self.urlItem:
@@ -275,6 +280,8 @@ class Node(QtWidgets.QGraphicsWidget):
             self.urlItem.prepareGeometryChange()
             if (
                 self.dialog.showUrlsAction.isChecked()
+                if self.dialog
+                else False
                 and not self.dialog.showNamesAction.isChecked()
                 and self.dialog.showIconsAction.isChecked()
             ):
@@ -283,17 +290,19 @@ class Node(QtWidgets.QGraphicsWidget):
                 self.urlItem.setPos(
                     0,
                     self.dialog.showIconsAction.isChecked()
+                    if self.dialog
+                    else False
                     and icon_size
                     or 0 + self.dialog.showNamesAction.isChecked()
-                    and icon_size
-                    or 0,
+                    if self.dialog
+                    else False and icon_size or 0,
                 )
 
-    def setSelected(self, state):
+    def setSelected(self, selected: bool):
         if self.shadow:
             self.shadow.updateBoundingRect()
-        self.selected = state
-        if state:
+        self._selected = selected
+        if selected:
             if self.resizeItem:
                 self.resizeItem.show()
             self.setZValue(2)
@@ -302,10 +311,10 @@ class Node(QtWidgets.QGraphicsWidget):
             if self.resizeItem:
                 self.resizeItem.hide()
             self.setZValue(1)
-            if self.dialog.outline:
-                self.pen = QPen(Qt.black, 1.5)
+            if self.dialog and self.dialog.outline:
+                self.pen = QPen(Qt.GlobalColor.black, 1.5)
             else:
-                self.pen = QPen(QColor(0, 0, 0, 0), 0)
+                self.pen = QPen(QColor(0), 0)
 
     def mouseDoubleClickEvent(self, event):
         def get_childs(node):
@@ -321,7 +330,7 @@ class Node(QtWidgets.QGraphicsWidget):
         QtWidgets.QGraphicsWidget.mouseDoubleClickEvent(self, event)
 
     def onTimer(self):
-        if not self.mouseReleased:
+        if self._mouseReleased is None:
             # print "skipTimer"
             return
         # print "onTimer"
@@ -329,35 +338,38 @@ class Node(QtWidgets.QGraphicsWidget):
         mime = NodeMimeData()
         mime.setObject(self)
         mime.setData("node/move", QByteArray())
-        mime.setOrigin(self.mouseReleased)
+        mime.setOrigin(self._mouseReleased)
         drag.setMimeData(mime)
-        drag.exec_(Qt.MoveAction)
+        drag.exec(Qt.DropAction.MoveAction)
 
     def mouseReleaseEvent(self, event):
-        self.mouseReleased = None
+        self._mouseReleased = None
 
     def mousePressEvent(self, event):
         # print self.id,self.name
         # print self.color.name()
 
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.MouseButton.LeftButton:
             event.ignore()
             return
 
         # Selection
-        if QtWidgets.QApplication.keyboardModifiers() & Qt.ControlModifier:
-            if self.selected:
+        if (
+            QtWidgets.QApplication.keyboardModifiers()
+            & Qt.KeyboardModifier.ControlModifier
+        ):
+            if self._selected:
                 nodeUtils.options.removeSelection(self)
             else:
                 nodeUtils.options.selected += [self]
                 self.setSelected(True)
             return
         else:
-            if not self.selected:
+            if not self._selected:
                 nodeUtils.options.setSelection([self])
 
         if not self.timer.isActive():
-            self.mouseReleased = self.mapToScene(
+            self._mouseReleased = self.mapToScene(
                 event.pos().x(), event.pos().y()
             )
             self.timer.start()
@@ -387,9 +399,9 @@ class Node(QtWidgets.QGraphicsWidget):
         clearIconAction = menu.addAction("Clear icon")
         editNameAction = menu.addAction("Edit title")
         editKeywordsAction = menu.addAction("Edit keywords")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == setIconAction:
-            f, mask = QtWidgets.QFileDialog.getOpenFileName(
+            f, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if f:
@@ -402,8 +414,10 @@ class Node(QtWidgets.QGraphicsWidget):
                 CommandSetNodeAttribute([self], {"icon": None})
             )
         elif action == editNameAction:
-            self.nameItem.setTextInteractionFlags(Qt.TextEditorInteraction)
-            self.nameItem.setFocus(Qt.MouseFocusReason)
+            self.nameItem.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextEditorInteraction
+            )
+            self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)
         elif action == editKeywordsAction:
 
             def f(text):
@@ -424,9 +438,6 @@ class Node(QtWidgets.QGraphicsWidget):
             )
             editor.show()
 
-    def boundingRect(self):
-        return self.rect
-
     def resize(self, width, height):
         rect = QRectF(0, 0, width, height)
         self.setRect(rect)
@@ -436,11 +447,11 @@ class Node(QtWidgets.QGraphicsWidget):
         painter.setBrush(self.brush)
         painter.setPen(self.pen)
         painter.drawRoundedRect(
-            self.rect,
+            self._rect,
             nodeUtils.options.nodeRadius,
             nodeUtils.options.nodeRadius,
         )
-        r = QRectF(self.rect)
+        r = QRectF(self._rect)
         r.adjust(1.5, 1.5, -1.5, -1.5)
         c = QColor(self.color)
         c.darker(80)

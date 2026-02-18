@@ -7,13 +7,22 @@ from qtpy.QtCore import QObject, QMimeData
 
 
 def getNodeClass(x):
-
+    from nodeTypes import (
+        Node,  # noqa: F401
+        NodeGroup,  # noqa: F401
+        NodeShader,  # noqa: F401
+        NodeControl,  # noqa: F401
+        NodeNote,  # noqa: F401
+        NodeGraph,  # noqa: F401
+        NodeBlock,  # noqa: F401
+    )
+    from nodeTypes.NodeBookmark import BookmarkNode  # noqa: F401
 
     return locals()[x]
 
 
 def normalizeName(name):
-    we = re.sub("(\s{1,}|\-{1,}|\_{1,})+", "_", name)
+    we = re.sub(r"(\s{1,}|\-{1,}|\_{1,})+", "_", name)
     lowers = "abcdefghijklmnopqrstuvwxyz"
     skips = "_"
     we = we.rstrip(skips)
@@ -38,7 +47,7 @@ def incrementName(name, dic):
     Dictinary keys are names, values are number of instances
     Values of dict are updated
     """
-    res = re.sub("\d+$", "", name)
+    res = re.sub(r"\d+$", "", name)
     if res in dic.keys():
         d = dic[res] + 1
         dic[res] = d
@@ -49,15 +58,15 @@ def incrementName(name, dic):
     return res
 
 
-def listRemove(l, item):
+def listRemove(lst, item):
     """
     Removes item or items from list if it's exists
     List is referenced
     """
     try:
-        i = l.index(item)
-        del l[i]
-    except:
+        idx = lst.index(item)
+        del lst[idx]
+    except Exception:
         pass
 
 
@@ -215,14 +224,14 @@ class NodesOptions(QObject):
         pixmap.save()
 
     def addSelection(self, nodes):
-        if nodes.__class__ != list:
+        if not isinstance(nodes, list):
             nodes = [nodes]
         self.selected += nodes
         for n in nodes:
             n.setSelected(True)
 
     def setSelection(self, nodes):
-        if nodes.__class__ != list:
+        if not isinstance(nodes, list):
             nodes = [nodes]
         for n in self.selected:
             n.setSelected(False)
@@ -231,7 +240,7 @@ class NodesOptions(QObject):
             n.setSelected(True)
 
     def removeSelection(self, nodes):
-        if nodes.__class__ != list:
+        if not isinstance(nodes, list):
             nodes = [nodes]
         for n in nodes:
             n.setSelected(False)

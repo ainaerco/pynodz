@@ -2,7 +2,8 @@ from __future__ import division
 from math import factorial
 
 
-_unzip = lambda zipped: zip(*zipped)  # unzip a list of tuples
+def _unzip(zipped):
+    return zip(*zipped)  # unzip a list of tuples
 
 
 ################################################################################

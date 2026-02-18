@@ -1,5 +1,5 @@
-from qtpy.QtGui import *
-from qtpy.QtCore import *
+from qtpy.QtCore import Qt, QRectF
+from qtpy.QtWidgets import QInputDialog
 from qtpy import QtWidgets
 from .Node import Node
 from nodeParts.Parts import NodeInput
@@ -21,10 +21,10 @@ from nodeCommand import CommandSetNodeAttribute, CommandCreateConnection
 class NodeShader(Node):
     def __init__(self, d, dialog=None):
         Node.__init__(self, d, dialog)
-        self.layout = QtWidgets.QGraphicsLinearLayout(Qt.Vertical)
-        self.layout.setSpacing(7)
-        self.layout.setContentsMargins(23, 20, 7, 7)
-        self.setLayout(self.layout)
+        layout = QtWidgets.QGraphicsLinearLayout(Qt.Orientation.Vertical)
+        layout.setSpacing(7)
+        layout.setContentsMargins(23, 20, 7, 7)
+        self.setLayout(layout)
         if (
             self.shader
             and self.shader in self.dialog.shaders.keys()
@@ -62,14 +62,15 @@ class NodeShader(Node):
 
     def updateGeometry(self):
         # self.prepareGeometryChange()
-        margin = self.layout.spacing()
-        (l, t, r, b) = self.layout.getContentsMargins()
+        layout = self.layout()
+        margin = layout.spacing()
+        (left, t, r, b) = layout.getContentsMargins()
         height = t
-        width = self.rect.width()
-        for i in range(self.layout.count()):
-            item = self.layout.itemAt(i)
+        width = self._rect.width()
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
             height += item.rect.height() + margin
-            width = item.rect.width() + l + r
+            width = item.rect.width() + left + r
 
         height += b
         self.resize(width, height)
@@ -119,7 +120,7 @@ class NodeShader(Node):
         if attr["name"] in self.pinnedAttributes.keys():
             if not pinned:
                 self.prepareGeometryChange()
-                self.layout.removeItem(self.pinnedAttributes[attr["name"]])
+                self.layout().removeItem(self.pinnedAttributes[attr["name"]])
                 self.scene().removeItem(self.pinnedAttributes[attr["name"]])
 
                 del self.pinnedAttributes[attr["name"]]
@@ -135,7 +136,7 @@ class NodeShader(Node):
         self.pinnedAttributes[attr["name"]] = item
         item.prepareGeometryChange()
         item.resize(200, nodeUtils.options.attributeFont.pixelSize() + 4)
-        self.layout.addItem(item)
+        self.layout().addItem(item)
 
         # self.setRect(self.form.boundingRect())
         self.updateGeometry()
@@ -155,7 +156,7 @@ class NodeShader(Node):
             x.attr for x in self.connections if x.child == self and x.attr
         ]
         clas = getAttrByType(attr["type"])
-        if clas == None:
+        if clas is None:
             clas = NodeAttr
         if self.shader == "image" and attr["name"] == "filename":
             clas = NodeAttrImage
@@ -220,7 +221,9 @@ class NodeShader(Node):
                     },
                 )
 
-                pageLayout = QtWidgets.QGraphicsLinearLayout(Qt.Vertical)
+                pageLayout = QtWidgets.QGraphicsLinearLayout(
+                    Qt.Orientation.Vertical
+                )
                 pageLayout.setSpacing(7)
                 pageLayout.setContentsMargins(23, 20, 7, 7)
 
@@ -290,8 +293,8 @@ class NodeShader(Node):
                 return
             for c in conns:
                 menu.addAction(c)
-            action = menu.exec_(event.screenPos())
-            if action == None:
+            action = menu.exec(event.screenPos())
+            if action is None:
                 return
             # print action.text()
             d = {
@@ -311,7 +314,7 @@ class NodeShader(Node):
         editNameAction = menu.addAction("Edit title")
         editKeywordsAction = menu.addAction("Edit keywords")
         setOutputAction = menu.addAction("Set output type")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == setIconAction:
             f, mask = QtWidgets.QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
@@ -326,8 +329,10 @@ class NodeShader(Node):
                 CommandSetNodeAttribute([self], {"icon": None})
             )
         elif action == editNameAction:
-            self.nameItem.setTextInteractionFlags(Qt.TextEditorInteraction)
-            self.nameItem.setFocus(Qt.MouseFocusReason)
+            self.nameItem.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextEditorInteraction
+            )
+            self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)
         elif action == editKeywordsAction:
 
             def f(text):

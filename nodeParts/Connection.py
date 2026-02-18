@@ -1,10 +1,13 @@
-from qtpy.QtGui import QPen, QColor, QPainterPath, QTransform, QRectF, QPointF
-from qtpy.QtCore import Qt
+from qtpy.QtGui import QPen, QColor, QPainterPath, QTransform
+from qtpy.QtCore import Qt, QRectF, QPointF
 from qtpy import QtWidgets
 
 import bezier
 
-# import pybezier
+try:
+    import pybezier
+except ImportError:
+    pybezier = None  # optional dependency
 from math import cos, sin, atan2
 import nodeUtils
 
@@ -62,27 +65,27 @@ class Connection(QtWidgets.QGraphicsItem):
             if hasattr(self.parent, "connector") and self.parent.connector:
                 p1 = t.map(self.parent.pos() + self.parent.connector.pos())
             else:
-                p = self.parent.pos() + self.parent.rect.center()
+                p = self.parent.pos() + self.parent._rect.center()
                 t.translate(p.x(), p.y())
                 t.rotate(self.parent.rotation())
                 t.translate(-p.x(), -p.y())
                 p1 = t.map(
                     self.parent.pos()
-                    + self.parent.rect.center()
-                    + self.parent.rect.topRight() * 0.5
+                    + self.parent._rect.center()
+                    + self.parent._rect.topRight() * 0.5
                 )
 
             t = QTransform()
-            p = self.child.pos() + self.child.rect.center()
+            p = self.child.pos() + self.child._rect.center()
             t.translate(p.x(), p.y())
             t.rotate(self.child.rotation())
             t.translate(-p.x(), -p.y())
-            p2 = t.map(self.child.pos() + self.child.rect.topRight() * 0.5)
-            self.rect = QRectF(p1, p2)
+            p2 = t.map(self.child.pos() + self.child._rect.topRight() * 0.5)
+            self._rect = QRectF(p1, p2)
         else:
-            self.rect = QRectF(self.parent, self.child)
-        a = self.rect.topLeft()
-        b = self.rect.bottomRight()
+            self._rect = QRectF(self.parent, self.child)
+        a = self._rect.topLeft()
+        b = self._rect.bottomRight()
 
         self.path = QPainterPath()
 
@@ -180,7 +183,7 @@ class Connection(QtWidgets.QGraphicsItem):
     def contextMenuEvent(self, event):
         menu = QtWidgets.QMenu(self.scene().parent())
         editNameAction = menu.addAction("Edit name")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == editNameAction:
             self.nameItem.setTextInteractionFlags(
                 Qt.TextInteractionFlag.TextEditorInteraction

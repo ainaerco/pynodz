@@ -30,14 +30,21 @@ from qtpy import QtWidgets
 
 import bezier
 
-# from pybezier import Spline
 import math
 import colorsys
 from copy import deepcopy
-# from _geometry import getBarycentric,Vector,Ray
 
+try:
+    from images.imageDialog import PreviewFileDialog
+except ImportError:
+    PreviewFileDialog = QtWidgets.QFileDialog  # fallback
+try:
+    from _geometry import getBarycentric, Vector, Ray
+except ImportError:
+    Vector = None
+    Ray = None
+    getBarycentric = None
 
-# from images.imageDialog import PreviewFileDialog
 from nodeUtils import NodeMimeData
 from nodeParts.Parts import DropDown
 from random import random
@@ -262,7 +269,7 @@ class NumericTextItem(StringTextItem):
 
     def setValue(self, text: str):
         v = float(text)
-        if self.index == None:
+        if self.index is None:
             if self.parent()._value == v:
                 return
             self.parent()._value = v
@@ -433,7 +440,7 @@ class NodeAttr(QtWidgets.QGraphicsWidget):
             return
         menu = QtWidgets.QMenu(self.scene().parent())
         defaultAction = menu.addAction("Revert to default")
-        action = menu.exec_(QCursor.pos())
+        action = menu.exec(QCursor.pos())
         if action == defaultAction:
             self.setDefault()
             self.updateAttribute(self.attr["name"], self._value)
@@ -677,7 +684,7 @@ class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
             mime.setData("attr/float", QByteArray())
             mime.setObject(self)
             drag.setMimeData(mime)
-            drag.exec_(Qt.DropAction.MoveAction)
+            drag.exec(Qt.DropAction.MoveAction)
         # event.ignore()
 
     def dragMoveEvent(self, event):
@@ -1089,7 +1096,7 @@ class NodeAttrImage(NodeAttr):
         defaultAction = menu.addAction("Revert to default")
         editNameAction = menu.addAction("Edit string")
         fileNameAction = menu.addAction("Open file")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == defaultAction:
             self.setDefault()
             self.textItem.setPlainText(self._value)
@@ -1105,7 +1112,7 @@ class NodeAttrImage(NodeAttr):
                 r"Image Files (*.tx *.tif *.png *.jpg);;",
             )  # *.png *.jpg *.bmp *.tif
             dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
-            ok = dialog.exec_()
+            ok = dialog.exec()
             f = [x for x in dialog.selectedFiles()]
             if not ok or not f:
                 return
@@ -1176,7 +1183,7 @@ class NodeAttrString(NodeAttr):
         defaultAction = menu.addAction("Revert to default")
         editNameAction = menu.addAction("Edit string")
         fileNameAction = menu.addAction("Open file")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == defaultAction:
             self.setDefault()
             self.textItem.setPlainText(self._value)
@@ -1441,7 +1448,7 @@ class SplinePoint(QtWidgets.QGraphicsItem):
         mime.setObject(self)
         drag.setMimeData(mime)
         print("her1")
-        drag.exec_(Qt.DropAction.MoveAction)
+        drag.exec(Qt.DropAction.MoveAction)
         event.accept()
 
     def contextMenuEvent(self, event):
@@ -1450,7 +1457,7 @@ class SplinePoint(QtWidgets.QGraphicsItem):
             return
         menu = QtWidgets.QMenu(self.scene().parent())
         defaultAction = menu.addAction("Delete")
-        action = menu.exec_(QCursor.pos())
+        action = menu.exec(QCursor.pos())
         if action == defaultAction:
             self.parent().removePoint(self)
             self.parent().updateSpline()
@@ -1577,7 +1584,7 @@ class RampRect(NodeAttr):
         mime.setData("spline/move", QByteArray())
         mime.setObject(n)
         drag.setMimeData(mime)
-        drag.exec_(Qt.DropAction.MoveAction)
+        drag.exec(Qt.DropAction.MoveAction)
 
     def dragEnterEvent(self, event):
         self.setFocus(Qt.MouseFocusReason)
@@ -1744,16 +1751,7 @@ class SplineRect(NodeAttr):
             p_y += [self.points[i].pos().y()]
         p_x += [self._rect.width() + 20]
         p_y += [self.points[-1].pos().y()]
-        li = []
-        for i in range(len(p_x)):
-            li += [p_x[i]] + [p_y[i]]
-        w = Spline(li)
-        li = w.interpolate(20)
-        x_intpol = []
-        y_intpol = []
-        for i in range(len(li) / 2):
-            x_intpol += [li[i * 2]]
-            y_intpol += [li[i * 2 + 1]]
+        x_intpol, y_intpol = bezier.CatmullRom(p_x, p_y, 20)
 
         # print len(x_intpol),self.options.splineStep,len(p_x)
         self.spline = QPainterPath()
@@ -1785,7 +1783,7 @@ class SplineRect(NodeAttr):
         mime.setData("spline/move", QByteArray())
         mime.setObject(n)
         drag.setMimeData(mime)
-        drag.exec_(Qt.DropAction.MoveAction)
+        drag.exec(Qt.DropAction.MoveAction)
 
     def keyPressEvent(self, event):
         if len(self.points) < 3:
@@ -2172,7 +2170,7 @@ class NodePanel(NodeAttr):
             return
         layout = self.layout()
         margin = layout.spacing()
-        (l, t, r, b) = layout.getContentsMargins()
+        (left, t, r, b) = layout.getContentsMargins()
         height = t
         for i in range(layout.count()):
             item = layout.itemAt(i)
@@ -2187,11 +2185,11 @@ class NodePanel(NodeAttr):
         layout = self.layout()
         if not layout:
             return
-        (l, t, r, b) = layout.getContentsMargins()
+        (left, t, r, b) = layout.getContentsMargins()
         for i in range(layout.count()):
             item = layout.itemAt(i)
             item.prepareGeometryChange()
-            item.resize(self.rect.width() - l - r, item.rect.height())
+            item.resize(self.rect.width() - left - r, item.rect.height())
             QtWidgets.QGraphicsWidget.updateGeometry(item)
 
     def updateGeometry(self):
@@ -2386,6 +2384,8 @@ class NodeAttrRgb(NodeAttr):
         self.opacityPoint = QPointF(self.opacityRect.center().x(), s)
         if self.val == 0.0:
             self.point = self.p3
+            return
+        if Ray is None or Vector is None:
             return
         s = lerp_2d_list((1.0, 0.0), (0.0, math.pi / 3.0), self.sat)
         a = self.p3 - self.p1
@@ -2670,7 +2670,7 @@ class NodeAttrRgb(NodeAttr):
             mime.setData("rgb/value", QByteArray())
             mime.setObject(self)
             drag.setMimeData(mime)
-            drag.exec_(Qt.DropAction.MoveAction)
+            drag.exec(Qt.DropAction.MoveAction)
             return
         if self.attr["type"] == "RGBA" and self.opacityRect.contains(
             event.pos()
@@ -2680,30 +2680,30 @@ class NodeAttrRgb(NodeAttr):
             mime.setData("rgb/opacity", QByteArray())
             mime.setObject(self)
             drag.setMimeData(mime)
-            drag.exec_(Qt.DropAction.MoveAction)
+            drag.exec(Qt.DropAction.MoveAction)
             return
         p = event.pos() - self.circleCenter
-        l = length(p)
-        if l <= self.circleRadius and l >= self.circleRadius * 0.7:
+        dist = length(p)
+        if dist <= self.circleRadius and dist >= self.circleRadius * 0.7:
             drag = QDrag(self.scene().parent())
             mime = NodeMimeData()
             mime.setData("rgb/drag", QByteArray())
             mime.setObject(self)
             drag.setMimeData(mime)
-            drag.exec_(Qt.DropAction.MoveAction)
-        elif l < self.circleRadius * 0.7:
+            drag.exec(Qt.DropAction.MoveAction)
+        elif dist < self.circleRadius * 0.7:
             drag = QDrag(self.scene().parent())
             mime = NodeMimeData()
             mime.setData("rgb/point", QByteArray())
             mime.setObject(self)
             drag.setMimeData(mime)
-            drag.exec_(Qt.DropAction.MoveAction)
+            drag.exec(Qt.DropAction.MoveAction)
 
     def wheelEvent(self, event):
         if self.expanded:
             p = event.pos() - self.circleCenter
-            l = length(p)
-            if l <= self.circleRadius * 1.2:
+            dist = length(p)
+            if dist <= self.circleRadius * 1.2:
                 self.setHue(self.hue + 0.0001 * event.angleDelta().y())
                 self.updateValue()
                 self.updateAttribute()
@@ -2719,7 +2719,11 @@ class NodeAttrRgb(NodeAttr):
             self.updateTriangle()
             self.updatePoint()
             self.update()
-        elif mime.hasFormat("rgb/point"):
+        elif (
+            mime.hasFormat("rgb/point")
+            and getBarycentric is not None
+            and Vector is not None
+        ):
             p = self.mapFromScene(event.scenePos())
             a = Vector(self.p1.x(), self.p1.y(), 0.0)
             b = Vector(self.p2.x(), self.p2.y(), 0.0)

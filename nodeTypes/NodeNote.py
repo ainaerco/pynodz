@@ -1,5 +1,4 @@
-from qtpy.QtGui import *
-from qtpy.QtCore import *
+from qtpy.QtCore import Qt, QRectF
 from qtpy import QtWidgets
 
 import nodeUtils
@@ -14,12 +13,14 @@ class NodeNote(Node):
         Node.__init__(self, d, dialog)
         self.html = d.get("html", None)
         self.htmlItem = TitleItem("", self, "html")
-        self.htmlItem.document().setIndentWidth(20)
+        doc = self.htmlItem.document()
+        if doc:
+            doc.setIndentWidth(20)
         self.htmlItem.setPos(0, nodeUtils.options.iconSize)
         if self.html:
             self.htmlItem.setHtml(self.html)
 
-        self.setRect(self.rect)
+        self.setRect(self._rect)
         # self.setFlag(QtWidgets.QGraphicsItem.ItemClipsChildrenToShape)
 
     def addExtraControls(self):
@@ -27,16 +28,18 @@ class NodeNote(Node):
         self.resizeItem.hide()
 
     def setRect(self, rect):
-        self.rect = rect
-        self.rect.setWidth(max(nodeUtils.options.iconSize, self.rect.width()))
-        self.rect.setHeight(max(nodeUtils.options.iconSize, self.rect.height()))
+        self._rect = rect
+        self._rect.setWidth(max(nodeUtils.options.iconSize, self._rect.width()))
+        self._rect.setHeight(
+            max(nodeUtils.options.iconSize, self._rect.height())
+        )
         # self.nameItem.prepareGeometryChange()
         # self.nameItem.setPos(self.icon and (Dialog.showIconsAction.isChecked() and nodeUtils.options.iconSize or -4)+8 or 2,nodeUtils.options.iconSize/4.0)
         if self.htmlItem:
-            self.htmlItem.setTextWidth(self.boundingRect().width())
+            self.htmlItem.setTextWidth(self._rect.width())
         if self.resizeItem:
             self.resizeItem.prepareGeometryChange()
-            self.resizeItem.setPos(self.rect.right(), self.rect.bottom())
+            self.resizeItem.setPos(self._rect.right(), self._rect.bottom())
         self.setColor(self.color)
 
     def fromDict(self, d):
@@ -69,7 +72,9 @@ class NodeNote(Node):
         editNameAction = menu.addAction("Edit title")
         # editTextAction = menu.addAction("Edit url")
         # copyUrlAction = menu.addAction("Copy url")
-        action = menu.exec_(event.screenPos())
+        action = menu.exec(event.screenPos())
         if action == editNameAction:
-            self.nameItem.setTextInteractionFlags(Qt.TextEditorInteraction)
-            self.nameItem.setFocus(Qt.MouseFocusReason)
+            self.nameItem.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextEditorInteraction
+            )
+            self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)

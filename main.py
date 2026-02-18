@@ -3,6 +3,9 @@ import logging
 import os
 import json
 import yaml
+import inspect
+import subprocess
+from copy import deepcopy
 from functools import partial
 
 from operator import methodcaller
@@ -37,7 +40,7 @@ from qtpy import QtWidgets
 
 import nodeUtils
 from nodeUtils import mergeDicts
-from nodeAttrs import NodePanel
+from nodeAttrs import NodePanel, lerp_2d_list
 from nodeCommand import (
     CommandSetNodeAttribute,
     CommandCreateNode,
@@ -77,7 +80,22 @@ logging.basicConfig(
 log = logging.getLogger("NodeEditor")
 log.setLevel(logging.DEBUG)
 RECENT_FILES_COUNT = 5
-sign = lambda x: (1, 0)[x < 0]
+
+
+def sign(x):
+    return (1, 0)[x < 0]
+
+
+def set_proxy(name, port):
+    """Configure HTTP/HTTPS proxy via environment for urllib and similar."""
+    if name and str(port).strip():
+        proxy = f"{name}:{port}"
+        os.environ["http_proxy"] = proxy
+        os.environ["https_proxy"] = proxy
+    else:
+        os.environ.pop("http_proxy", None)
+        os.environ.pop("https_proxy", None)
+
 
 user_agent = {
     "User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7"
@@ -129,7 +147,7 @@ class FilteredMenu(QtWidgets.QMenu):
         self.filterString = ""
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+        if event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
             event.accept()
             QtWidgets.QMenu.keyPressEvent(self, event)
             return
@@ -498,7 +516,7 @@ class NodeDialog(QtWidgets.QWidget):
         for shader in shaders:
             actions += [menu.addAction(shader)]
         p = QCursor.pos()
-        menuAction = menu.exec_(p)
+        menuAction = menu.exec(p)
         p = self.mapFromGlobal(p)
         p = self.viewport.mapToScene(p)
         if menuAction:
@@ -594,7 +612,7 @@ class NodeDialog(QtWidgets.QWidget):
         elif reason == QtWidgets.QSystemTrayIcon.Context:
             menu = QtWidgets.QMenu(self)
             exitAction = menu.addAction("Exit")
-            action = menu.exec_(QCursor.pos())
+            action = menu.exec(QCursor.pos())
             if action == exitAction:
                 self.close()
 
@@ -605,12 +623,12 @@ class NodeDialog(QtWidgets.QWidget):
     def showIcons(self, checked):
         if checked:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == BookmarkNode and n.icon != None:
+                if n.__class__ == BookmarkNode and n.icon is not None:
                     n.iconItem.setVisible(True)
                     n.setRect(n.rect)
         else:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == BookmarkNode and n.icon != None:
+                if n.__class__ == BookmarkNode and n.icon is not None:
                     n.iconItem.hide()
                     n.setRect(n.rect)
 
@@ -673,7 +691,7 @@ class NodeDialog(QtWidgets.QWidget):
         if self.settings.value("use_proxy", 0):
             proxy_name = self.settings.value("proxy_name", "")
             proxy_port = self.settings.value("proxy_port", "")
-            # set_proxy(proxy_name, proxy_port)
+            set_proxy(proxy_name, proxy_port)
         nodeUtils.options.nodeRadius = self.settings.value(
             "Options.nodeRadius", 5
         )
@@ -932,7 +950,7 @@ class NodeDialog(QtWidgets.QWidget):
         """
         if nodeUtils.options.undoStack.count() > 0:
             ret = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Information, "Save Changes", "Save changes to\n%s" % self.filename,
-                              QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel).exec_()
+                              QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel).exec()
             if QtWidgets.QMessageBox.Yes == ret:
                 self.saveFile()
             elif QtWidgets.QMessageBox.Cancel == ret:
@@ -999,7 +1017,7 @@ class Scene(QtWidgets.QGraphicsScene):
         setdef = menu.addAction("Set as default")
         revert = menu.addAction("Revert to defaults")
 
-        action = menu.exec_(QCursor.pos())
+        action = menu.exec(QCursor.pos())
         if action == setdef:
             attrs = [
                 x
@@ -1028,7 +1046,7 @@ class Scene(QtWidgets.QGraphicsScene):
             v = {}
             for a in attrs:
                 a.setDefault()
-                if a.value.__class__ == list:
+                if isinstance(a.value, list):
                     v[a.attr["name"]] = deepcopy(a.value)
                 else:
                     v[a.attr["name"]] = a.value
@@ -1082,7 +1100,10 @@ class View(QtWidgets.QGraphicsView):
             n = nodeUtils.options.selected[0]
             n.prepareGeometryChange()
 
-            if QtWidgets.QApplication.keyboardModifiers() & Qt.ControlModifier:
+            if (
+                QtWidgets.QApplication.keyboardModifiers()
+                & Qt.KeyboardModifier.ControlModifier
+            ):
                 n.setScale(
                     event.angleDelta() > 0
                     and n.scale() * 1.1
@@ -1092,7 +1113,10 @@ class View(QtWidgets.QGraphicsView):
                 # n.setRect(QRectF(0,0,n.rect.width()*1.1,n.rect.height()*1.1))
                 # for c in n.connections:c.updatePath()
                 return
-            elif QtWidgets.QApplication.keyboardModifiers() & Qt.ShiftModifier:
+            elif (
+                QtWidgets.QApplication.keyboardModifiers()
+                & Qt.KeyboardModifier.ShiftModifier
+            ):
                 if event.angleDelta() > 0:
                     n.setRotation(n.rotation() + 10)
                 else:
@@ -1117,21 +1141,21 @@ class View(QtWidgets.QGraphicsView):
         self.updateColorPicker()
 
     def mousePressEvent(self, event):
-        if event.buttons() & Qt.MiddleButton:
+        if event.buttons() & Qt.MouseButton.MiddleButton:
             drag = QDrag(self.parent())
             mime = QMimeData()
             mime.setData("scene/move", QByteArray())
             drag.setMimeData(mime)
-            drag.exec_(Qt.MoveAction)
+            drag.exec(Qt.MoveAction)
         elif (
-            event.buttons() & Qt.LeftButton
+            event.buttons() & Qt.MouseButton.LeftButton
             and len(self.items(event.pos())) == 0
         ):
             drag = QDrag(self.parent())
             mime = QMimeData()
             mime.setData("scene/rubberband", QByteArray())
             drag.setMimeData(mime)
-            drag.exec_(Qt.MoveAction)
+            drag.exec(Qt.MoveAction)
         QtWidgets.QGraphicsView.mousePressEvent(self, event)
 
     def dragEnterEvent(self, event):
@@ -1160,15 +1184,18 @@ class View(QtWidgets.QGraphicsView):
                 sel.old_pos = sel.pos()
             sel = mime.getObject()
             if sel.__class__ == NodeGroup:
+                rect = QRectF(
+                    sel.pos().x(),
+                    sel.pos().y(),
+                    sel._rect.width(),
+                    sel._rect.height(),
+                )
                 sel.childs = [
                     x
                     for x in self.scene().items(
-                        sel.pos().x(),
-                        sel.pos().y(),
-                        sel.rect.width(),
-                        sel.rect.height(),
-                        Qt.IntersectsItemShape,
-                        Qt.DescendingOrder,
+                        rect,
+                        Qt.ItemSelectionMode.IntersectsItemShape,
+                        Qt.SortOrder.DescendingOrder,
                     )
                     if issubclass(x.__class__, Node) and x != sel
                 ]
@@ -1227,7 +1254,9 @@ class View(QtWidgets.QGraphicsView):
             sel = mime.getObject()
             res = (event.pos() - self.old_pos) * self.scaleFactor
             sel.prepareGeometryChange()
-            sel.resize(sel.rect.width() + res.x(), sel.rect.height() + res.y())
+            sel.resize(
+                sel._rect.width() + res.x(), sel._rect.height() + res.y()
+            )
             sel.updateGeometry()
             self.old_pos = event.pos()
             return
@@ -1367,7 +1396,7 @@ class View(QtWidgets.QGraphicsView):
         newControlAction = menu.addAction("New control")
         newBlockAction = menu.addAction("New block")
         menu.addSeparator()
-        action = menu.exec_(self.mapToGlobal(event.pos()))
+        action = menu.exec(self.mapToGlobal(event.pos()))
         p = self.mapToScene(event.pos())
         d = {"posx": p.x(), "posy": p.y()}
         command = None
@@ -1438,7 +1467,7 @@ class ColorPickerItem(QtWidgets.QGraphicsRectItem):
         QtWidgets.QGraphicsRectItem.__init__(self, *args)
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.LeftButton:
+        if event.button() != Qt.MouseButton.LeftButton:
             event.ignore()
             return
 
@@ -1454,8 +1483,6 @@ class ColorPickerItem(QtWidgets.QGraphicsRectItem):
 
 
 callGraph = None
-import inspect
-import subprocess
 
 
 def str_to_obj(astr):
@@ -1710,7 +1737,7 @@ if __name__ == "__main__":
     QtWidgets.QApplication.setStartDragTime(200)
     window = NodeDialog()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
     # from pycallgraph import PyCallGraph
     # from json_output import JsonOutput
@@ -1726,4 +1753,4 @@ if __name__ == "__main__":
     #     window.show()
     #     calls = CallDialog(None,callGraph=callGraph)
     #     calls.show()
-    #     sys.exit(app.exec_())
+    #     sys.exit(app.exec())

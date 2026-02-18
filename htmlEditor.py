@@ -15,21 +15,6 @@ from qtpy.QtGui import (
 from qtpy import QtCore, QtWidgets
 
 
-class TextEdit(QtWidgets.QTextEdit):
-    def __init__(self):
-        QtWidgets.QTextEdit.__init__(self)
-
-    def focusInEvent(self, e):
-        format = QTextCharFormat()
-        font = self.parent().fonts.currentFont()
-        font.setPointSize(int(self.parent().font_size.currentText()))
-        color = QColor(self.parent().colors.currentText())
-        format.setForeground(color)
-        format.setFont(font)
-
-        self.textCursor().setCharFormat(format)
-
-
 class HtmlEditor(QtWidgets.QDialog):
     def __init__(self, parent=None, d={}):
         QtWidgets.QDialog.__init__(self, parent)
@@ -293,7 +278,6 @@ class HtmlEditor(QtWidgets.QDialog):
     def indentPress(self):
         cur = self.html.textCursor()
         pos = cur.position()  # Where a selection ends
-        anchor = cur.anchor()
         cur.setPosition(pos)
         # Move the position back one, selection the character prior to the original position
         cur.setPosition(pos - 1, QTextCursor.MoveMode.KeepAnchor)
@@ -378,4 +362,4 @@ if __name__ == "__main__":
     QtWidgets.QApplication.setDoubleClickInterval(4000)
     win = HtmlEditor()
     win.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
