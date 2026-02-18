@@ -1,0 +1,6 @@
+__pycache__/
+.vscode/
+downloads/
+.venv/
+.ruff_cache/
+unused/
