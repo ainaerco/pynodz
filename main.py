@@ -1,7 +1,6 @@
 import sys
 import logging
 import os
-import json
 import yaml
 import inspect
 import subprocess
@@ -466,10 +465,12 @@ class NodeDialog(QtWidgets.QWidget):
         self.setWindowIcon(icon)
         self.setLayout(self.layout)
         self.readSettings()
-        if os.path.isfile("arnold.json"):
-            f = open("arnold.json", "r")
-            self.shaders = json.loads(f.read())
-            f.close()
+        arnold_path = (
+            "arnold.yaml" if os.path.isfile("arnold.yaml") else "arnold.json"
+        )
+        if os.path.isfile(arnold_path):
+            with open(arnold_path, "r", encoding="utf-8") as f:
+                self.shaders = yaml.safe_load(f.read()) or {}
         else:
             self.shaders = getArnoldShaders()
 
@@ -894,12 +895,14 @@ class NodeDialog(QtWidgets.QWidget):
                 "viewport": r,
                 "connections": save_connections,
             }
-            js = json.dumps(
-                dump, sort_keys=False, indent=4
-            )  # .decode('unicode-escape').encode('utf-8')
-            f = open(self.filename, "w")
-            f.write(js)
-            f.close()
+            data = yaml.dump(
+                dump,
+                default_flow_style=False,
+                sort_keys=False,
+                allow_unicode=True,
+            )
+            with open(self.filename, "w", encoding="utf-8") as f:
+                f.write(data)
 
             nodeUtils.options.undoStack.clear()
         except Exception as e:
