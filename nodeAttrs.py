@@ -1,4 +1,14 @@
 # from qtpy.QtGui import *
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, cast
+
+
+# For parent/widget that pyright sees as QObject but is NodeAttr in practice
+def _attr_parent(obj: Any) -> Any:
+    return cast(Any, obj)
+
+
 from qtpy.QtGui import (
     QTextBlockFormat,
     QTextCursor,
@@ -35,15 +45,18 @@ import colorsys
 from copy import deepcopy
 
 try:
-    from images.imageDialog import PreviewFileDialog
+    from images.imageDialog import PreviewFileDialog  # type: ignore[import-untyped]
 except ImportError:
     PreviewFileDialog = QtWidgets.QFileDialog  # fallback
 try:
-    from _geometry import getBarycentric, Vector, Ray
+    from _geometry import getBarycentric, Vector, Ray  # type: ignore[import-untyped]
 except ImportError:
     Vector = None
     Ray = None
     getBarycentric = None
+
+if TYPE_CHECKING:
+    from qtpy.QtWidgets import QWidget
 
 from nodeUtils import NodeMimeData
 from nodeParts.Parts import DropDown
@@ -176,7 +189,12 @@ class ItemRgbAnimation(QPropertyAnimation):
 
     def afterAnimationStep(self, step):
         item = self._item
-        if item is not None and self.rgb_bezierR:
+        if (
+            item is not None
+            and self.rgb_bezierR is not None
+            and self.rgb_bezierG is not None
+            and self.rgb_bezierB is not None
+        ):
             r = self.rgb_bezierR(step)[1]
             g = self.rgb_bezierG(step)[1]
             b = self.rgb_bezierB(step)[1]
@@ -207,21 +225,25 @@ class StringTextItem(QtWidgets.QGraphicsTextItem):
 
     def setValue(self, text):
         text = str(text)
+        parent = self.parent()
+        if parent is None:
+            return
+        p = _attr_parent(parent)
         if not self.index:
-            if self.parent()._value != text:
-                self.parent()._value = text
+            if p._value != text:
+                p._value = text
                 self.setAlignment(Qt.AlignmentFlag.AlignRight)
-                self.parent().updateAttribute()
+                p.updateAttribute()
         elif isinstance(self.index, (list, tuple)) and len(self.index) == 2:
-            if self.parent()._value[self.index[0]][self.index[1]] != text:
-                self.parent()._value[self.index[0]][self.index[1]] = text
+            if p._value[self.index[0]][self.index[1]] != text:
+                p._value[self.index[0]][self.index[1]] = text
                 self.setAlignment(Qt.AlignmentFlag.AlignRight)
-                self.parent().updateAttribute()
+                p.updateAttribute()
         else:
-            if self.parent()._value[self.index] != text:
-                self.parent()._value[self.index] = text
+            if p._value[self.index] != text:
+                p._value[self.index] = text
                 self.setAlignment(Qt.AlignmentFlag.AlignRight)
-                self.parent().updateAttribute()
+                p.updateAttribute()
 
     def focusOutEvent(self, event):
         if (
@@ -233,15 +255,20 @@ class StringTextItem(QtWidgets.QGraphicsTextItem):
         self.textCursor().clearSelection()
         QtWidgets.QGraphicsTextItem.focusOutEvent(self, event)
 
-    def mouseDoubleClickEvent(self, event: QtWidgets.QGraphicsSceneMouseEvent):
+    def mouseDoubleClickEvent(
+        self, event: QtWidgets.QGraphicsSceneMouseEvent | None
+    ):
+        if event is not None:
+            event.accept()
         self.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextEditorInteraction
         )
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.setFocus(Qt.FocusReason.MouseFocusReason)
-        event.accept()
 
-    def keyPressEvent(self, event: QKeyEvent):
+    def keyPressEvent(self, event: QKeyEvent | None):
+        if event is None:
+            return
         if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
             if (
                 Qt.TextInteractionFlag.TextEditorInteraction
@@ -273,24 +300,28 @@ class NumericTextItem(StringTextItem):
 
     def setValue(self, text: str):
         v = float(text)
+        parent = self.parent()
+        if parent is None:
+            return
+        p = _attr_parent(parent)
         if self.index is None:
-            if self.parent()._value == v:
+            if p._value == v:
                 return
-            self.parent()._value = v
+            p._value = v
         elif isinstance(self.index, (list, tuple)) and len(self.index) == 2:
-            if self.parent()._value[self.index[0]][self.index[1]] == v:
+            if p._value[self.index[0]][self.index[1]] == v:
                 return
-            self.parent()._value[self.index[0]][self.index[1]] = v
+            p._value[self.index[0]][self.index[1]] = v
         else:
-            if self.parent()._value[self.index] == v:
+            if p._value[self.index] == v:
                 return
-            self.parent()._value[self.index] = v
+            p._value[self.index] = v
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.parent().updateAttribute()
+        p.updateAttribute()
 
-    def keyPressEvent(self, event: QKeyEvent):
-        # print event.key()
-
+    def keyPressEvent(self, event: QKeyEvent | None):
+        if event is None:
+            return
         if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
             # self.setValue(self.toPlainText())
             self.setTextInteractionFlags(
@@ -312,7 +343,8 @@ class NumericTextItem(StringTextItem):
 class NodeAttr(QtWidgets.QGraphicsWidget):
     def __init__(self, parent, options, attr):
         QtWidgets.QGraphicsWidget.__init__(self, parent)
-        self.setCacheMode(QtWidgets.QGraphicsItem.DeviceCoordinateCache)
+        # DeviceCoordinateCache = 1 (Qt enum; stub may not define it)
+        self.setCacheMode(cast(Any, 1))
         self.setZValue(1)
         self.attr = attr
         self.options = options
@@ -361,14 +393,18 @@ class NodeAttr(QtWidgets.QGraphicsWidget):
             self.setAcceptDrops(True)
 
     def dragEnterEvent(self, event):
-        event.accept()
+        if event is not None:
+            event.accept()
 
     def dragMoveEvent(self, event):
-        event.accept()
+        if event is not None:
+            event.accept()
 
     def dropEvent(self, event):
+        if event is None:
+            return
         mime = event.mimeData()
-        if not mime.hasFormat("node/connect"):
+        if mime is None or not mime.hasFormat("node/connect"):
             return
         self.setConnected(True)
         event.accept()
@@ -380,17 +416,19 @@ class NodeAttr(QtWidgets.QGraphicsWidget):
         self.connected = state
 
     def updateAttribute(self, name=None, value=None):
-        self.parent().updateAttribute(self.attr["name"], self._value)
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateAttribute(self.attr["name"], self._value)
 
     def setDefault(self):
         self._value = self.attr["default"]
 
-    def setGeometry(self, geom):
+    def setGeometry(self, geom):  # pyright: ignore[reportIncompatibleMethodOverride]
         self.prepareGeometryChange()
         QtWidgets.QGraphicsWidget.setGeometry(self, geom)
         self.setPos(geom.topLeft())
 
-    def resize(self, width, height):
+    def resize(self, width, height):  # pyright: ignore[reportIncompatibleMethodOverride]
         self._rect = QRectF(0, 0, width, height)
         gradient = QLinearGradient(
             self._rect.topLeft(), self._rect.bottomLeft()
@@ -407,15 +445,11 @@ class NodeAttr(QtWidgets.QGraphicsWidget):
         self.brush = QBrush(gradient)
         QtWidgets.QGraphicsWidget.resize(self, width, height)
 
-    def sizeHint(self, which, constraint):
-        if (
-            which == Qt.SizeHintFlag.MinimumSize
-            or Qt.SizeHintFlag.PreferredSize
-        ):
+    def sizeHint(self, which, constraint=None):
+        sh = getattr(Qt, "SizeHintFlag", getattr(Qt, "SizeHint", None))
+        if sh and (which == sh.MinimumSize or which == sh.PreferredSize):
             return QSizeF(self._rect.width(), self._rect.height())
-        # elif which==Qt.MaximumSize:
-        #     return QSizeF(1000,1000)
-        return constraint
+        return constraint if constraint is not None else QSizeF()
 
     @property
     def value(self):
@@ -425,18 +459,22 @@ class NodeAttr(QtWidgets.QGraphicsWidget):
     def value(self, value):
         self._value = value
 
-    # def boundingRect(self):
-    #    return self.rect
-
     def paint(self, painter, option, widget=None):
+        if painter is None:
+            return
         painter.setPen(self.pen)
         painter.setFont(self.options.attributeFont)
         painter.drawText(5, 10, self.attr["name"] + self.attr["type"])
 
     def contextMenuEvent(self, event):
-        if not _is_node_shader(self.parent()):
+        if event is None:
             return
-        menu = QtWidgets.QMenu(self.scene().parent())
+        p = self.parent()
+        if p is None or not _is_node_shader(p):
+            return
+        scene = self.scene()
+        menu_parent = cast("QWidget | None", scene.parent() if scene else None)
+        menu = QtWidgets.QMenu(menu_parent)
         defaultAction = menu.addAction("Revert to default")
         action = menu.exec(QCursor.pos())
         if action == defaultAction:
@@ -515,25 +553,17 @@ class NodeAttrEnum(NodeAttr):
             painter.setBrush(self.darkBrush)
             painter.drawPath(self.path)
             fm = QFontMetrics(self.options.attributeFont)
-            # space_count = self.rect.width()-self.buttonRect.width()-fm.width(self.label)-fm.width(self._value)-5
             painter.drawText(5, w, self.label)
+            text_w = (
+                fm.horizontalAdvance(self._value)
+                if hasattr(fm, "horizontalAdvance")
+                else getattr(fm, "width", lambda _: 0)(self._value)
+            )
             painter.drawText(
-                self._rect.width()
-                - self.buttonRect.width()
-                - fm.width(self._value)
-                - 5,
+                self._rect.width() - self.buttonRect.width() - text_w - 5,
                 w,
                 self._value,
             )
-            # if space_count>=0:
-            # painter.drawText(5,w,self.label)
-            # painter.drawText(self.rect.width()-self.buttonRect.width()-fm.width(self._value),w,self._value)
-            # painter.drawRect(QRectF(5+fm.width(self.label),w,space_count,w))
-            # space_count = int(space_count/float(fm.width(" ")))
-
-            # painter.drawText(5,w,self.label+space_count*" "+self._value)
-            # else:
-            # painter.drawText(5,w,self._value)
         else:
             painter.setPen(QPen(0))
             painter.setBrush(self.selectedBrush)
@@ -548,9 +578,9 @@ class NodeAttrEnum(NodeAttr):
                 painter.drawText(5, w + i * w, self.items[i])
 
     def mousePressEvent(self, event):
-
-        if event.button() != Qt.MouseButton.LeftButton:
-            event.ignore()
+        if event is None or event.button() != Qt.MouseButton.LeftButton:
+            if event is not None:
+                event.ignore()
             return
 
         if self.expanded:
@@ -560,7 +590,7 @@ class NodeAttrEnum(NodeAttr):
             pos = min(max(pos, 0), len(self.items) - 1)
             self.value = self.items[pos]
             self.updateAttribute(self.attr["name"], self._value)
-            self.hoverLeaveEvent(event)
+            self.hoverLeaveEvent(None)
         else:
             self.expanded = True
             self._rect.setHeight(
@@ -582,9 +612,9 @@ class NodeAttrEnum(NodeAttr):
         self.updateGeometry()
 
     def hoverMoveEvent(self, event):
-        self.mousePosition = event.pos()
+        if event is not None:
+            self.mousePosition = event.pos()
         self.update()
-        # QtWidgets.QGraphicsWidget.updateGeometry(self)
 
 
 class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
@@ -592,7 +622,6 @@ class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
         NodeAttr.__init__(self, parent, options, attr)
         self.margin = 7
         self.valueRect = QRectF()
-        # self.brush.setColor(QColor(50, 50, 50, 150))
         self.numericText = NumericTextItem(
             self, self.options, self._value, r"%.2f"
         )
@@ -637,7 +666,6 @@ class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
         self._value = value
         self.numericText.setPlainText("%.2f" % self._value)
         self.numericText.setAlignment(Qt.AlignmentFlag.AlignRight)
-        # self.update()
 
     def paint(self, painter, option, widget=None):
         painter.setBrush(self.darkBrush)
@@ -663,19 +691,9 @@ class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
         self.update()
 
     def mousePressEvent(self, event):
+        if event is None:
+            return
         if event.button() == Qt.MouseButton.LeftButton:
-            # timeline = QTimeLine()
-            # timeline.setUpdateInterval(1000 / 25)
-            # timeline.setDuration(500)
-            # self.animation = ItemRgbAnimation()
-            # self.animation.setItem(self)
-            # self.animation.setTimeLine(timeline)
-            # self.animation.setRgbAt(0.0, 50, 50, 50)
-            # self.animation.setRgbAt(0.5, 255, 153, 62)
-            # self.animation.setRgbAt(0.7, 150, 100, 60)
-            # self.animation.setRgbAt(1.0, 50, 50, 50)
-            # timeline.start()
-
             self.dragStart = event.pos().x()
             drag = QDrag(event.widget())
             mime = NodeMimeData()
@@ -683,7 +701,6 @@ class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
             mime.setObject(self)
             drag.setMimeData(mime)
             drag.exec(Qt.DropAction.MoveAction)
-        # event.ignore()
 
     def dragMoveEvent(self, event):
         mime = event.mimeData()
@@ -694,15 +711,14 @@ class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
             ):
                 event.accept()
                 return
-        if (
-            mime.hasFormat("attr/float") and mime.getObject() == self
-        ):  # and self.dragDelay:
+        if mime.hasFormat("attr/float") and mime.getObject() == self:
             self.drag(event)
             self.update()
             event.accept()
-        # NodeAttr.dragMoveEvent(self,event)
 
     def drag(self, event):
+        if event is None:
+            return
         p = self.mapFromScene(event.scenePos())
         v = max(
             0, min(p.x() - self.margin, self._rect.width() - 2 * self.margin)
@@ -717,8 +733,6 @@ class NodeAttrFloat(NodeAttr):  # (QGraphicsObject, NodeAttr):
 
     def dropEvent(self, event):
         NodeAttr.dropEvent(self, event)
-        # if event.isAccepted():
-        #    return
         self.updateAttribute(self.attr["name"], self._value)
 
 
@@ -747,15 +761,12 @@ class NodeAttrInt(NodeAttrFloat):
         self._value = int(value)
         self.numericText.setPlainText("%d" % self._value)
         self.numericText.setAlignment(Qt.AlignmentFlag.AlignRight)
-        # self.update()
 
 
 class NodeAttrVector(NodeAttrFloat):
     def __init__(self, parent, options, attr):
         NodeAttr.__init__(self, parent, options, attr)
         self.margin = 7
-        # self.brush.setColor(QColor(50, 50, 50, 150))
-        # self.label = self.attr['name']
         self.softmin = 0.0
         self.softmax = 1.0
         self.dimension = len(self._value)
@@ -776,7 +787,7 @@ class NodeAttrVector(NodeAttrFloat):
         self._value = value
         for i in range(self.dimension):
             self.numericTexts[i].setPlainText("%.2f" % self._value[i])
-            self.numericTexts[i].setAlignment(Qt.AlignRight)
+            self.numericTexts[i].setAlignment(Qt.AlignmentFlag.AlignRight)
 
     def paint(self, painter, option, widget=None):
 
@@ -827,7 +838,7 @@ class NodeAttrVector(NodeAttrFloat):
                 self._value[i] = lerp_2d_list(
                     (
                         i * self._rect.width() / self.dimension + self.margin,
-                        (i + 1) * self.rect.width() / self.dimension
+                        (i + 1) * self._rect.width() / self.dimension
                         - self.margin,
                     ),
                     (self.softmin, self.softmax),
@@ -842,13 +853,10 @@ class NodeAttrMatrix(NodeAttrFloat):
     def __init__(self, parent, options, attr):
         NodeAttr.__init__(self, parent, options, attr)
         self.margin = 7
-        # self.brush.setColor(QColor(50, 50, 50, 150))
-        # self.label = self.attr['name']
         self.softmin = 0.0
         self.softmax = 1.0
 
         self.setDefault()
-        # self.height = 0
         self.dimension = 4
         self.numericTexts = []
         for i in range(self.dimension):
@@ -872,11 +880,11 @@ class NodeAttrMatrix(NodeAttrFloat):
             ]
 
     @property
-    def value(self):
+    def value(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         return self._value
 
     @value.setter
-    def value(self, value):
+    def value(self, value):  # pyright: ignore[reportIncompatibleMethodOverride]
         self._value = value
         for i in range(self.dimension):
             for j in range(self.dimension):
@@ -886,6 +894,8 @@ class NodeAttrMatrix(NodeAttrFloat):
                 )
 
     def paint(self, painter, option, widget=None):
+        if painter is None:
+            return
         painter.setPen(self.pen)
         painter.drawRoundedRect(
             self._rect, self.options.nodeRadius, self.options.nodeRadius
@@ -984,14 +994,16 @@ class NodeAttrMatrix(NodeAttrFloat):
                         / self.dimension
                         + self.margin,
                         (j + 1)
-                        * (self.rect.width() - 2 * self.margin)
+                        * (self._rect.width() - 2 * self.margin)
                         / self.dimension,
                     ),
                     (self.softmin, self.softmax),
                     pos.x(),
                 )
                 self.numericTexts[i][j].setPlainText("%.2f" % self._value[i][j])
-                self.numericTexts[i][j].setAlignment(Qt.AlignRight)
+                self.numericTexts[i][j].setAlignment(
+                    Qt.AlignmentFlag.AlignRight
+                )
 
                 self.update()
                 return
@@ -1038,7 +1050,7 @@ class NodeAttrBool(NodeAttr):
         )
 
     def mousePressEvent(self, event):
-        if event.buttons() & Qt.LeftButton:
+        if event is None or not (event.buttons() & Qt.MouseButton.LeftButton):
             self._value = not self._value
             self.updateAttribute(self.attr["name"], self._value)
             # self.update()
@@ -1056,7 +1068,8 @@ class NodeAttrImage(NodeAttr):
         self.textItem = StringTextItem(self, self.options, attr["default"])
         self.textItem.setPlainText("")
         self._value = attr["default"]
-        self.setFlag(QtWidgets.QGraphicsItem.ItemClipsChildrenToShape, True)
+        # ItemClipsChildrenToShape (stub may not define it)
+        self.setFlag(cast(Any, 0x100), True)
 
     def setAlignment(self, alignment):
         self.alignment = alignment
@@ -1073,9 +1086,9 @@ class NodeAttrImage(NodeAttr):
         return self._value
 
     @value.setter
-    def value(self, text):
-        self._value = text
-        self.textItem.setPlainText(text)
+    def value(self, value):  # pyright: ignore[reportIncompatibleMethodOverride]
+        self._value = value
+        self.textItem.setPlainText(str(value))
         self.textItem.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.update()
 
@@ -1085,12 +1098,16 @@ class NodeAttrImage(NodeAttr):
         self.pixmap.setPos(
             width / 2 - self.pixmap.boundingRect().width() / 2, 0
         )
-        self.rect = QRectF(0, 0, width, height)
+        self._rect = QRectF(0, 0, width, height)
         self.textItem.setTextWidth(width)
         QtWidgets.QGraphicsWidget.resize(self, width, height)
 
     def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self.scene().parent())
+        if event is None:
+            return
+        scene = self.scene()
+        menu_parent = cast("QWidget | None", scene.parent() if scene else None)
+        menu = QtWidgets.QMenu(menu_parent)
         defaultAction = menu.addAction("Revert to default")
         editNameAction = menu.addAction("Edit string")
         fileNameAction = menu.addAction("Open file")
@@ -1100,28 +1117,32 @@ class NodeAttrImage(NodeAttr):
             self.textItem.setPlainText(self._value)
             self.textItem.setAlignment(Qt.AlignmentFlag.AlignRight)
             self.updateAttribute(self.attr["name"], self._value)
-        if action == editNameAction:
-            self.textItem.mouseDoubleClickEvent()
+        if action == editNameAction and event is not None:
+            self.textItem.mouseDoubleClickEvent(event)
         if action == fileNameAction:
             dialog = PreviewFileDialog(
-                self.scene().parent(),
+                menu_parent,
                 "Open artwork",
                 "",
                 r"Image Files (*.tx *.tif *.png *.jpg);;",
-            )  # *.png *.jpg *.bmp *.tif
-            dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
+            )
+            dialog.setAcceptMode(
+                cast(Any, 0)
+            )  # QFileDialog.AcceptMode.AcceptOpen
             ok = dialog.exec()
             f = [x for x in dialog.selectedFiles()]
             if not ok or not f:
                 return
-            self.pixmap.setPixmap(
-                dialog.pixmap.scaled(
-                    self.pixmap.boundingRect().width(),
-                    self.pixmap.boundingRect().height(),
-                    Qt.TransformationMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
+            preview_pixmap = getattr(dialog, "pixmap", None)
+            if preview_pixmap is not None:
+                w = int(self.pixmap.boundingRect().width())
+                h = int(self.pixmap.boundingRect().height())
+                tm = getattr(Qt, "TransformationMode", None)
+                aspect = tm.KeepAspectRatio if tm else 1
+                smooth = tm.SmoothTransformation if tm else 2
+                self.pixmap.setPixmap(
+                    preview_pixmap.scaled(w, h, aspect, smooth)
                 )
-            )
             self.textItem.setValue(f[0])
             self.textItem.setPlainText(f[0])
             self.textItem.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -1165,9 +1186,9 @@ class NodeAttrString(NodeAttr):
         return self._value
 
     @value.setter
-    def value(self, text):
-        self._value = text
-        self.textItem.setPlainText(text)
+    def value(self, value):  # pyright: ignore[reportIncompatibleMethodOverride]
+        self._value = value
+        self.textItem.setPlainText(str(value))
         self.textItem.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.update()
 
@@ -1177,7 +1198,11 @@ class NodeAttrString(NodeAttr):
         QtWidgets.QGraphicsWidget.resize(self, width, height)
 
     def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self.scene().parent())
+        if event is None:
+            return
+        scene = self.scene()
+        menu_parent = cast("QWidget | None", scene.parent() if scene else None)
+        menu = QtWidgets.QMenu(menu_parent)
         defaultAction = menu.addAction("Revert to default")
         editNameAction = menu.addAction("Edit string")
         fileNameAction = menu.addAction("Open file")
@@ -1191,7 +1216,7 @@ class NodeAttrString(NodeAttr):
             self.textItem.mouseDoubleClickEvent(event)
         if action == fileNameAction:
             f, mask = QtWidgets.QFileDialog.getOpenFileName(
-                self.scene().parent(), "Open File", "", "All Files (*.*)"
+                menu_parent, "Open File", "", "All Files (*.*)"
             )
             if f:
                 self.textItem.setValue(f)
@@ -1313,14 +1338,18 @@ class NodeAttrArray(NodeAttr):
         if len(self.items) == 0:
             return
         n = self.items[-1]
-        self.scene().removeItem(n)
+        scene = self.scene()
+        if scene is not None:
+            scene.removeItem(n)
         del self.items[-1]
 
     def updateAttribute(self, name=None, value=None):
         self._value = []
         for i in range(len(self.items)):
             self._value += [self.items[i].value]
-        self.parent().updateAttribute(self.attr["name"], self._value)
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateAttribute(self.attr["name"], self._value)
 
     def resize(self, width, height):
         self._rect = QRectF(0, 0, width, height)
@@ -1336,7 +1365,7 @@ class NodeAttrArray(NodeAttr):
             )
             self.items[i].setPos(5, h)
             self.items[i].updateGeometry()
-            h += self.items[i].rect.height() + 5
+            h += self.items[i].geometry().height() + 5
             # (self.options.attributeFont.pixelSize()+3)*(i+1)
 
         self._rect.setHeight(h)
@@ -1379,12 +1408,9 @@ class NodeAttrArray(NodeAttr):
         painter.drawText(5, self.options.attributeFont.pixelSize(), self.label)
 
     def mousePressEvent(self, event):
-        # print 'mousePressEvent'
-        # QtWidgets.QGraphicsWidget.mousePressEvent(self,event)
-        # if event.isAccepted():
-        #    return
-        if event.button() != Qt.MouseButton.LeftButton:
-            event.ignore()
+        if event is None or event.button() != Qt.MouseButton.LeftButton:
+            if event is not None:
+                event.ignore()
             return
         if self.addButton.contains(event.pos()):
             self.prepareGeometryChange()
@@ -1416,6 +1442,8 @@ class SplinePoint(QtWidgets.QGraphicsItem):
         return self._rect
 
     def paint(self, painter, option, widget=None):
+        if painter is None:
+            return
         if self.selected:
             painter.setPen(QPen(QColor(200, 0, 50)))
         painter.drawPath(self.path)
@@ -1426,8 +1454,9 @@ class SplinePoint(QtWidgets.QGraphicsItem):
         return p
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.MouseButton.LeftButton:
-            event.ignore()
+        if event is None or event.button() != Qt.MouseButton.LeftButton:
+            if event is not None:
+                event.ignore()
             return
         drag = QDrag(event.widget())
         mime = NodeMimeData()
@@ -1458,19 +1487,23 @@ class RampRect(NodeAttr):
         self.points = []  # [SplinePoint(self),SplinePoint(self)]
 
         self.setAcceptDrops(True)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable)
+        self.setFlag(cast(Any, 0x1))  # ItemIsFocusable
         self.selectedId = 0
         self.gradient = QLinearGradient()
-        self.gradient.setColorAt(0, Qt.black)
-        self.gradient.setColorAt(1, Qt.black)
+        self.gradient.setColorAt(0, QColor(0, 0, 0))
+        self.gradient.setColorAt(1, QColor(0, 0, 0))
 
     def updateNumeric(self):
-        self.parent().updateNumeric(
-            self.selectedId, self.points[self.selectedId].pos()
-        )
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateNumeric(
+                self.selectedId, self.points[self.selectedId].pos()
+            )
 
     def updateColor(self):
-        self.parent().updateColor(self.points[self.selectedId].color)
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateColor(self.points[self.selectedId].color)
 
     def updateRamp(self):
         self.gradient = QLinearGradient()
@@ -1543,29 +1576,32 @@ class RampRect(NodeAttr):
 
     def removePoint(self, point):
         n = None
-        ni = None
+        ni: int | None = None
         for i in range(len(self.points)):
             if self.points[i] == point:
                 n = self.points[i]
                 ni = i
                 break
-        if not n:
+        if not n or ni is None:
             return
-        self.scene().removeItem(n)
+        scene = self.scene()
+        if scene is not None:
+            scene.removeItem(n)
         del self.points[ni]
 
     def focusOutEvent(self, event):
         QtWidgets.QGraphicsWidget.focusOutEvent(self, event)
 
     def mousePressEvent(self, event):
-        self.setFocus(Qt.MouseFocusReason)
-        if event.button() != Qt.MouseButton.LeftButton:
+        self.setFocus(Qt.FocusReason.MouseFocusReason)
+        if event is None or event.button() != Qt.MouseButton.LeftButton:
             # event.ignore()
             return
         event.ignore()
 
         n = self.addPoint(event.pos())
-        drag = QDrag(self.scene().parent())
+        scene = self.scene()
+        drag = QDrag(scene.parent() if scene else None)
         mime = NodeMimeData()
         mime.setData("spline/move", QByteArray())
         mime.setObject(n)
@@ -1573,7 +1609,9 @@ class RampRect(NodeAttr):
         drag.exec(Qt.DropAction.MoveAction)
 
     def dragEnterEvent(self, event):
-        self.setFocus(Qt.MouseFocusReason)
+        self.setFocus(Qt.FocusReason.MouseFocusReason)
+        if event is None:
+            return
         mime = event.mimeData()
         # if not mime.hasFormat('spline/move') or mime.getObject().parent != self:
         #    return
@@ -1585,16 +1623,21 @@ class RampRect(NodeAttr):
                 self.points[i].selected = False
 
     def dragMoveEvent(self, event):
+        if event is None:
+            return
         mime = event.mimeData()
-        if mime.hasFormat("spline/move") and mime.getObject().parent == self:
+        obj = mime.getObject() if mime else None
+        if (
+            mime
+            and mime.hasFormat("spline/move")
+            and obj is not None
+            and getattr(obj, "parent", None) == self
+        ):
             p = self.mapFromScene(event.scenePos())
-            if (
-                mime.getObject() == self.points[0]
-                or mime.getObject() == self.points[-1]
-            ):
-                mime.getObject().setPos(mime.getObject().pos().x(), p.y())
+            if obj == self.points[0] or obj == self.points[-1]:
+                obj.setPos(obj.pos().x(), p.y())
             else:
-                mime.getObject().setPos(p.x(), self._rect.height() / 2)
+                obj.setPos(p.x(), self._rect.height() / 2)
 
             self.points.sort(key=lambda x: x.pos().x())
             self.updateRamp()
@@ -1612,14 +1655,14 @@ class RampRect(NodeAttr):
     def keyPressEvent(self, event):
         if len(self.points) < 3:
             return
+        if event is None:
+            return
         if event.key() == Qt.Key.Key_Backspace:
             self.removePoint(self.points[-2])
             self.selectedId = 0
-            # self.updateNumeric()
             self.updateValue()
             self.updateRamp()
             self.update()
-            # self.parent().updateAttribute(self)
             return
         elif event.key() == Qt.Key.Key_Delete:
             if self.selectedId != 0 and self.selectedId != len(self.points) - 1:
@@ -1643,13 +1686,15 @@ class SplineRect(NodeAttr):
         self.path = QPainterPath()
         self.spline = QPainterPath()
         self.setAcceptDrops(True)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable)
+        self.setFlag(cast(Any, 0x1))  # ItemIsFocusable
         self.selectedId = 0
 
     def updateNumeric(self):
-        self.parent().updateNumeric(
-            self.selectedId, self.points[self.selectedId].pos()
-        )
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateNumeric(
+                self.selectedId, self.points[self.selectedId].pos()
+            )
 
     def updateValue(self):
         # self._value = [[self.start.pos().x(),self.start.pos().y()]]
@@ -1717,15 +1762,17 @@ class SplineRect(NodeAttr):
 
     def removePoint(self, point):
         n = None
-        ni = None
+        ni: int | None = None
         for i in range(len(self.points)):
             if self.points[i] == point:
                 n = self.points[i]
                 ni = i
                 break
-        if not n:
+        if not n or ni is None:
             return
-        self.scene().removeItem(n)
+        scene = self.scene()
+        if scene is not None:
+            scene.removeItem(n)
         del self.points[ni]
 
     def updateSpline(self):
@@ -1758,13 +1805,14 @@ class SplineRect(NodeAttr):
 
     def mousePressEvent(self, event):
         self.setFocus(Qt.FocusReason.MouseFocusReason)
-        if event.button() != Qt.MouseButton.LeftButton:
-            # event.ignore()
+        if event is None or event.button() != Qt.MouseButton.LeftButton:
             return
         event.ignore()
 
         n = self.addPoint(event.pos())
-        drag = QDrag(self.scene().parent())
+        scene = self.scene()
+        drag_parent = scene.parent() if scene else None
+        drag = QDrag(drag_parent)
         mime = NodeMimeData()
         mime.setData("spline/move", QByteArray())
         mime.setObject(n)
@@ -1772,7 +1820,7 @@ class SplineRect(NodeAttr):
         drag.exec(Qt.DropAction.MoveAction)
 
     def keyPressEvent(self, event):
-        if len(self.points) < 3:
+        if event is None or len(self.points) < 3:
             return
         if event.key() == Qt.Key.Key_Backspace:
             self.removePoint(self.points[-2])
@@ -1793,8 +1841,9 @@ class SplineRect(NodeAttr):
                 return
 
     def dragEnterEvent(self, event):
-        # print 'dragEnterEvent'
         self.setFocus(Qt.FocusReason.MouseFocusReason)
+        if event is None:
+            return
         mime = event.mimeData()
         # if not mime.hasFormat('spline/move') or mime.getObject().parent != self:
         #    return
@@ -1805,16 +1854,21 @@ class SplineRect(NodeAttr):
                 self.points[i].selected = False
 
     def dragMoveEvent(self, event):
+        if event is None:
+            return
         mime = event.mimeData()
-        if mime.hasFormat("spline/move") and mime.getObject().parent == self:
+        obj = mime.getObject() if mime else None
+        if (
+            mime
+            and mime.hasFormat("spline/move")
+            and obj is not None
+            and getattr(obj, "parent", None) == self
+        ):
             p = self.mapFromScene(event.scenePos())
-            if (
-                mime.getObject() == self.points[0]
-                or mime.getObject() == self.points[-1]
-            ):
-                mime.getObject().setPos(mime.getObject().pos().x(), p.y())
+            if obj == self.points[0] or obj == self.points[-1]:
+                obj.setPos(obj.pos().x(), p.y())
             else:
-                mime.getObject().setPos(p)
+                obj.setPos(p)
 
             self.points.sort(key=lambda x: x.pos().x())
             self.updateSpline()
@@ -1849,7 +1903,7 @@ class NodeAttrSpline(NodeAttr):
     def updateNumeric(self, id, pos):
         self.numericText.index = [id, 1]
         self.numericText.setPlainText("%.2f" % pos.y())
-        self.numericText.setAlignment(Qt.AlignRight)
+        self.numericText.setAlignment(Qt.AlignmentFlag.AlignRight)
 
     @property
     def value(self):
@@ -1863,7 +1917,9 @@ class NodeAttrSpline(NodeAttr):
     def updateAttribute(self, name=None, value=None):
         if name is not None:
             self._value = value
-        self.parent().updateAttribute(self.attr["name"], self._value)
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateAttribute(self.attr["name"], self._value)
 
     def resize(self, width, height):
         self._rect.setWidth(width)
@@ -1951,7 +2007,7 @@ class NodeAttrRamp(NodeAttr):
     def updateNumeric(self, id, pos):
         self.numericText.index = [id, 0]
         self.numericText.setPlainText("%.2f" % pos.x())
-        self.numericText.setAlignment(Qt.AlignRight)
+        self.numericText.setAlignment(Qt.AlignmentFlag.AlignRight)
 
     def updateColor(self, color):
         self.colorItem.value = color
@@ -1969,7 +2025,9 @@ class NodeAttrRamp(NodeAttr):
     def updateAttribute(self, name=None, value=None):
         if name is not None:
             self._value = value
-        # self.parent().updateAttribute(self)
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateAttribute(self.attr["name"], self._value)
 
     def resize(self, width, height):
         self._rect.setWidth(width)
@@ -2066,7 +2124,7 @@ class PinUnpin(QtWidgets.QGraphicsPixmapItem):
         self.options = options
         self.state = None
         self.setState(pinned)
-        self.setShapeMode(QtWidgets.QGraphicsPixmapItem.BoundingRectShape)
+        self.setShapeMode(cast(Any, 0))  # BoundingRectShape
 
     def setState(self, state):
         if self.state == state:
@@ -2078,9 +2136,13 @@ class PinUnpin(QtWidgets.QGraphicsPixmapItem):
             self.setPixmap(self.options.getIcon("resources/icons/pin.png"))
 
     def mousePressEvent(self, event):
-        if event.buttons() & Qt.MouseButton.LeftButton:
+        if event is not None and (event.buttons() & Qt.MouseButton.LeftButton):
             self.setState(not self.state)
-            self.parent().parent().pinUnpin(self.parent().attr, self.state)
+            p = self.parent()
+            if p is not None:
+                pp = p.parent()
+                if pp is not None:
+                    _attr_parent(pp).pinUnpin(_attr_parent(p).attr, self.state)
 
 
 class ColorPicker(QtWidgets.QGraphicsPixmapItem):
@@ -2092,7 +2154,7 @@ class ColorPicker(QtWidgets.QGraphicsPixmapItem):
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.onTimer)
-        self.setShapeMode(QtWidgets.QGraphicsPixmapItem.BoundingRectShape)
+        self.setShapeMode(cast(Any, 0))  # BoundingRectShape
         # self.setMouseTracking(True)
 
     def onTimer(self):
@@ -2100,32 +2162,48 @@ class ColorPicker(QtWidgets.QGraphicsPixmapItem):
         c = QColor()
         c.setRgb(b)
 
-        self.parent().value = [c.redF(), c.greenF(), c.blueF()]
-        self.parent().update()
+        p = self.parent()
+        if p is not None and hasattr(p, "value"):
+            p.value = [c.redF(), c.greenF(), c.blueF()]
+            p.update()
 
     def ungrab(self):
         self.timer.stop()
-        self.parent().updateAttribute()
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateAttribute()
 
     def mousePressEvent(self, event):
-        if self.timer.isActive():
+        if event is None or self.timer.isActive():
             return
-        self.screens = QtWidgets.QApplication.desktop().screenCount()
+        desktop = getattr(QtWidgets.QApplication, "desktop", None)
+        if desktop is None:
+            return
+        app_desktop = desktop()
+        self.screens = app_desktop.screenCount()
         wholeDisplayGeometry = QRect()
         for i in range(self.screens):
-            screenRect = QtWidgets.QApplication.desktop().screenGeometry(i)
+            screenRect = app_desktop.screenGeometry(i)
             wholeDisplayGeometry = wholeDisplayGeometry.united(screenRect)
-        grab = QPixmap.grabWindow(
-            QtWidgets.QApplication.desktop().winId(),
+        grab = getattr(QPixmap, "grabWindow", None)
+        if grab is None:
+            return
+        grabbed = grab(
+            app_desktop.winId(),
             wholeDisplayGeometry.x(),
             wholeDisplayGeometry.y(),
             wholeDisplayGeometry.width(),
             wholeDisplayGeometry.height(),
         )
-
-        self.img = grab.toImage()
-        self.scene().parent().grabber = self
-        self.scene().parent().grabMouse()
+        self.img = grabbed.toImage()
+        scene = self.scene()
+        if scene is not None:
+            win = scene.parent()
+            if win is not None:
+                setattr(win, "grabber", self)
+                grab_mouse = getattr(win, "grabMouse", None)
+                if grab_mouse is not None:
+                    grab_mouse()
         self.timer.start()
 
 
@@ -2152,18 +2230,23 @@ class NodePanel(NodeAttr):
     def fitItems(self):
         if self.collapsed:
             height = self.options.attributeFont.pixelSize() + 4
-            self.resize(self.rect.width(), height)
+            self.resize(self._rect.width(), height)
             return
         layout = self.layout()
-        margin = layout.spacing()
+        if layout is None:
+            return
+        margin = getattr(layout, "spacing", lambda: 0)() or 0
         (left, t, r, b) = layout.getContentsMargins()
-        height = t
+        height = float(t) if t is not None else 0.0
         for i in range(layout.count()):
             item = layout.itemAt(i)
-            height += item.rect.height() + margin
+            if item is not None:
+                geom = item.geometry() if hasattr(item, "geometry") else None
+                h = geom.height() if geom is not None else 0
+                height += (h if h is not None else 0) + margin
 
-        height += b
-        self.resize(self.rect.width(), height)
+        height += b if b is not None else 0
+        self.resize(self._rect.width(), height)
 
     def updateItems(self):
         if self.collapsed:
@@ -2174,19 +2257,30 @@ class NodePanel(NodeAttr):
         (left, t, r, b) = layout.getContentsMargins()
         for i in range(layout.count()):
             item = layout.itemAt(i)
-            item.prepareGeometryChange()
-            item.resize(self.rect.width() - left - r, item.rect.height())
-            QtWidgets.QGraphicsWidget.updateGeometry(item)
+            if item is not None:
+                it = cast(Any, item)
+                if hasattr(it, "prepareGeometryChange"):
+                    it.prepareGeometryChange()
+                if hasattr(it, "resize"):
+                    geom = it.geometry() if hasattr(it, "geometry") else None
+                    h = geom.height() if geom is not None else 0
+                    left_f = left if left is not None else 0
+                    r_f = r if r is not None else 0
+                    it.resize(self._rect.width() - left_f - r_f, h)
+                if hasattr(it, "updateGeometry"):
+                    QtWidgets.QGraphicsWidget.updateGeometry(it)
 
     def updateGeometry(self):
         QtWidgets.QGraphicsWidget.updateGeometry(self)
 
     def paint(self, painter, option, widget=None):
+        if painter is None:
+            return
         painter.setPen(self.pen)
         painter.setBrush(self.brush)
         painter.setFont(self.options.attributeFont)
         painter.drawRoundedRect(
-            self.rect, self.options.nodeRadius, self.options.nodeRadius
+            self._rect, self.options.nodeRadius, self.options.nodeRadius
         )
         painter.drawText(7, self.options.attributeFont.pixelSize(), self.label)
 
@@ -2199,7 +2293,8 @@ class NodePanel(NodeAttr):
         self.collapsed = state
         for i in range(layout.count()):
             item = layout.itemAt(i)
-            item.setVisible(not state)
+            if item is not None and hasattr(cast(Any, item), "setVisible"):
+                cast(Any, item).setVisible(not state)
 
         self.prepareGeometryChange()
         self.fitItems()
@@ -2268,9 +2363,9 @@ class NodeAttrRgb(NodeAttr):
 
         self.gradientP1 = QLinearGradient()
         self.gradientP1.setColorAt(0, QColor(255, 0, 0, 255))
-        self.gradientP1.setColorAt(1, Qt.white)
+        self.gradientP1.setColorAt(1, QColor(255, 255, 255))
         self.gradientP3 = QLinearGradient()
-        self.gradientP3.setColorAt(0, Qt.black)
+        self.gradientP3.setColorAt(0, QColor(0, 0, 0))
         self.gradientP3.setColorAt(1, QColor(0, 0, 0, 0))
         self.gradientC = QRadialGradient()
 
@@ -2278,7 +2373,7 @@ class NodeAttrRgb(NodeAttr):
         angle = 0.0
         c = QColor()
         while angle <= 360.0:
-            c.setHsv(angle, 255, 255)
+            c.setHsvF(angle / 360.0, 1.0, 1.0, 1.0)
             self.gradientHSV.setColorAt(angle / 360.0, c)
             angle += 30.0
         d = {}
@@ -2294,7 +2389,9 @@ class NodeAttrRgb(NodeAttr):
     def updateAttribute(self, name=None, value=None):
         if name:
             self.value = value
-        self.parent().updateAttribute(self.attr["name"], self._value)
+        p = self.parent()
+        if p is not None:
+            _attr_parent(p).updateAttribute(self.attr["name"], self._value)
 
     def updateValue(self):
         c = list(colorsys.hsv_to_rgb(self.hue, self.sat, self.val))
@@ -2361,13 +2458,15 @@ class NodeAttrRgb(NodeAttr):
             (self.valueRect.bottom(), self.valueRect.top()),
             self.val,
         )
-        self.valuePoint = QPointF(self.valueRect.center().x(), s)
+        cx = self.valueRect.center().x()
+        self.valuePoint = QPointF(cx if cx is not None else 0.0, s)
         s = lerp_2d_list(
             (0.0, 1.0),
             (self.opacityRect.bottom(), self.opacityRect.top()),
             self.alpha,
         )
-        self.opacityPoint = QPointF(self.opacityRect.center().x(), s)
+        ox = self.opacityRect.center().x()
+        self.opacityPoint = QPointF(ox if ox is not None else 0.0, s)
         if self.val == 0.0:
             self.point = self.p3
             return
@@ -2473,9 +2572,8 @@ class NodeAttrRgb(NodeAttr):
             self.gradientP3.setFinalStop(self.p2)
 
     def resize(self, width, height):
-        # print self,'resize'
-        self.rect.setWidth(width)
-        self.rect.setHeight(height)
+        self._rect.setWidth(width)
+        self._rect.setHeight(height)
 
         w = self.options.attributeFont.pixelSize()
         self.colorPicker.prepareGeometryChange()
@@ -2509,16 +2607,14 @@ class NodeAttrRgb(NodeAttr):
             h + self.margin * 2, w + self.margin * 1.5, w, h
         )
         g = QLinearGradient()
-        g.setColorAt(0, Qt.white)
-        g.setColorAt(1, Qt.black)
+        g.setColorAt(0, QColor(255, 255, 255))
+        g.setColorAt(1, QColor(0, 0, 0))
         g.setStart(self.valueRect.topLeft())
         g.setFinalStop(self.valueRect.bottomLeft())
         self.valueBrush = QBrush(g)
         self.opacityRect = self.valueRect.translated(
             self.valueRect.width() + self.margin, 0
         )
-        # g = QLinearGradient()
-        # g.setColorAt(0,Qt.white)
         g.setColorAt(1, QColor(255, 255, 255, 0))
         g.setStart(self.opacityRect.topLeft())
         g.setFinalStop(self.opacityRect.bottomLeft())
@@ -2556,7 +2652,7 @@ class NodeAttrRgb(NodeAttr):
         painter.setBrush(self.darkBrush)
         painter.setPen(self.pen)
         painter.drawRoundedRect(
-            self.rect, self.options.nodeRadius, self.options.nodeRadius
+            self._rect, self.options.nodeRadius, self.options.nodeRadius
         )
         painter.drawRoundedRect(
             self.buttonRect, self.options.nodeRadius, self.options.nodeRadius
@@ -2612,7 +2708,7 @@ class NodeAttrRgb(NodeAttr):
             painter.setBrush(QBrush(self.gradientP3))
             painter.drawPath(self.triangle)
 
-            c = 255 - 255 * self.val
+            c = int(255 - 255 * self.val)
             painter.setPen(QPen(QColor(c, c, c)))
             painter.setBrush(self.darkBrush)
             painter.drawPath(p.translated(self.point))
@@ -2627,8 +2723,7 @@ class NodeAttrRgb(NodeAttr):
         )
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.MouseButton.LeftButton:
-            # event.ignore()
+        if event is None or event.button() != Qt.MouseButton.LeftButton:
             return
         event.ignore()
         if self.buttonRect.contains(event.pos()):
@@ -2650,8 +2745,10 @@ class NodeAttrRgb(NodeAttr):
                 self.updateGeometry()
                 self.update()
             return
+        scene = self.scene()
+        drag_parent = scene.parent() if scene else None
         if self.valueRect.contains(event.pos()):
-            drag = QDrag(self.scene().parent())
+            drag = QDrag(drag_parent)
             mime = NodeMimeData()
             mime.setData("rgb/value", QByteArray())
             mime.setObject(self)
@@ -2661,7 +2758,7 @@ class NodeAttrRgb(NodeAttr):
         if self.attr["type"] == "RGBA" and self.opacityRect.contains(
             event.pos()
         ):
-            drag = QDrag(self.scene().parent())
+            drag = QDrag(drag_parent)
             mime = NodeMimeData()
             mime.setData("rgb/opacity", QByteArray())
             mime.setObject(self)
@@ -2671,14 +2768,14 @@ class NodeAttrRgb(NodeAttr):
         p = event.pos() - self.circleCenter
         dist = length(p)
         if dist <= self.circleRadius and dist >= self.circleRadius * 0.7:
-            drag = QDrag(self.scene().parent())
+            drag = QDrag(drag_parent)
             mime = NodeMimeData()
             mime.setData("rgb/drag", QByteArray())
             mime.setObject(self)
             drag.setMimeData(mime)
             drag.exec(Qt.DropAction.MoveAction)
         elif dist < self.circleRadius * 0.7:
-            drag = QDrag(self.scene().parent())
+            drag = QDrag(drag_parent)
             mime = NodeMimeData()
             mime.setData("rgb/point", QByteArray())
             mime.setObject(self)
@@ -2686,11 +2783,15 @@ class NodeAttrRgb(NodeAttr):
             drag.exec(Qt.DropAction.MoveAction)
 
     def wheelEvent(self, event):
+        if event is None:
+            return
         if self.expanded:
             p = event.pos() - self.circleCenter
             dist = length(p)
             if dist <= self.circleRadius * 1.2:
-                self.setHue(self.hue + 0.0001 * event.angleDelta().y())
+                delta = getattr(event, "angleDelta", None)
+                y = delta.y() if delta is not None else 0
+                self.setHue(self.hue + 0.0001 * y)
                 self.updateValue()
                 self.updateAttribute()
                 return
