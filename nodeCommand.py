@@ -1,4 +1,10 @@
-from qtpy.QtCore import QTimeLine
+from qtpy.QtCore import (
+    QObject,
+    QPointF,
+    QPropertyAnimation,
+    QParallelAnimationGroup,
+)
+from qtpy.QtCore import Property  # type: ignore[attr-defined]
 from qtpy.QtGui import QUndoCommand
 from qtpy import QtWidgets
 
@@ -9,30 +15,76 @@ from nodeUtils import getNodeClass
 import bezier
 
 
-class NodeAnimation(QtWidgets.QGraphicsItemAnimation):  # type: ignore[misc]
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.opacity_points: list[tuple[float, float]] = []
-        self.opacity_bezier = None
+class NodeAnimationBridge(QObject):  # type: ignore[misc]
+    """Bridge QObject so QPropertyAnimation can drive a QGraphicsItem (pos/opacity)."""
 
-    def setOpacityAt(self, t: float, o: float) -> None:
-        self.opacity_points += [(t, o)]
-        if len(self.opacity_points) > 3:
-            self.opacity_bezier = bezier.Bspline(self.opacity_points)
+    def __init__(self, item, parent=None):
+        super().__init__(parent)
+        self._item = item
+        self._pos = QPointF(item.pos())
+        self._opacity = float(item.opacity())
 
-    def afterAnimationStep(self, step: float) -> None:
-        item = self.item()
-        if item is not None and self.opacity_bezier is not None:
-            o = self.opacity_bezier(step)[1]
-            item.setOpacity(o)
-            for c in item.connections:
-                c.setOpacity(o)
-        if item is not None:
-            for c in item.connections:
+    def get_pos(self):
+        return self._pos
+
+    def set_pos(self, value: QPointF):
+        self._pos = value
+        if self._item is not None:
+            self._item.setPos(value.x(), value.y())
+            for c in self._item.connections:
                 c.prepareGeometryChange()
                 c.updatePath()
                 c.update()
-        super().afterAnimationStep(step)
+
+    pos = Property(QPointF, get_pos, set_pos)
+
+    def get_opacity(self):
+        return self._opacity
+
+    def set_opacity(self, value):
+        self._opacity = value
+        if self._item is not None:
+            self._item.setOpacity(value)
+            for c in self._item.connections:
+                c.setOpacity(value)
+
+    opacity = Property(float, get_opacity, set_opacity)
+
+
+class OpacityBezierAnimation(QPropertyAnimation):  # type: ignore[misc]
+    """QPropertyAnimation that interpolates opacity using a bezier curve."""
+
+    def __init__(self, target, bezier_curve, parent=None):
+        super().__init__(target, b"opacity", parent)
+        self._bezier = bezier_curve
+
+    def interpolated(self, from_, to, progress):
+        if self._bezier is not None:
+            return self._bezier(progress)[1]
+        return super().interpolated(from_, to, progress)
+
+
+def _create_node_animations(item, old_pos, new_pos, duration_ms, fade_out):
+    """Create a QParallelAnimationGroup for one node: position + optional opacity."""
+    bridge = NodeAnimationBridge(item)
+    group = QParallelAnimationGroup()
+
+    pos_anim = QPropertyAnimation(bridge, b"pos")
+    pos_anim.setDuration(duration_ms)
+    pos_anim.setStartValue(QPointF(old_pos))
+    pos_anim.setEndValue(QPointF(new_pos))
+    group.addAnimation(pos_anim)
+
+    if fade_out:
+        opacity_points = [(0.0, 0.0), (0.5, 0.3), (0.7, 0.5), (1.0, 1.0)]
+        opacity_bezier = bezier.Bspline(opacity_points)
+        opacity_anim = OpacityBezierAnimation(bridge, opacity_bezier)
+        opacity_anim.setDuration(duration_ms)
+        opacity_anim.setStartValue(0.0)
+        opacity_anim.setEndValue(1.0)
+        group.addAnimation(opacity_anim)
+
+    return group, bridge
 
 
 class CommandMoveNode(QUndoCommand):  # type: ignore[misc]
@@ -73,24 +125,24 @@ class CommandMoveAnimNode(QUndoCommand):  # type: ignore[misc]
             n[i].setPos(self.old_positions[i].x(), self.old_positions[i].y())
 
     def redo(self):
-        timeline = QTimeLine()
-        timeline.setUpdateInterval(int(1000 / 25))
-        timeline.setDuration(self.time)
         n = [nodeUtils.options.nodes[x] for x in self.node_ids]
+        duration_ms = self.time
         self.animations = []
+        self._bridges = []
+        root_group = QParallelAnimationGroup()
         for i in range(len(n)):
-            animation = NodeAnimation()
-            animation.setItem(n[i])
-            animation.setTimeLine(timeline)
-            animation.setPosAt(0, self.old_positions[i])
-            animation.setPosAt(1, self.positions[i])
-            if self.fadeOut:
-                animation.setOpacityAt(0.0, 0.0)
-                animation.setOpacityAt(0.5, 0.3)
-                animation.setOpacityAt(0.7, 0.5)
-                animation.setOpacityAt(1.0, 1.0)
-            self.animations.append(animation)
-        timeline.start()
+            group, bridge = _create_node_animations(
+                n[i],
+                self.old_positions[i],
+                self.positions[i],
+                duration_ms,
+                self.fadeOut,
+            )
+            root_group.addAnimation(group)
+            self.animations.append(group)
+            self._bridges.append(bridge)
+        root_group.start()
+        self._root_animation = root_group
 
 
 class CommandSetNodeAttribute(QUndoCommand):  # type: ignore[misc]
