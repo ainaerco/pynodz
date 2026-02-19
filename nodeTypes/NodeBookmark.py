@@ -50,6 +50,18 @@ class NodeBookmark(Node):
         if self._rect.height() < min_height:
             self._rect = QRectF(0, 0, self._rect.width(), min_height)
         self.setRect(self._rect)
+        # Apply Options menu visibility for new bookmarks
+        if self.dialog:
+            if self.urlItem:
+                self.urlItem.setVisible(self.dialog.showUrlsAction.isChecked())
+            if self.iconItem is not None:
+                self.iconItem.setVisible(
+                    self.dialog.showIconsAction.isChecked()
+                )
+            if self.nameItem is not None:
+                self.nameItem.setVisible(
+                    self.dialog.showNamesAction.isChecked()
+                )
         self.setFlag(
             QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape
         )
@@ -60,6 +72,7 @@ class NodeBookmark(Node):
 
     def setRect(self, rect):
         super().setRect(rect)
+        # Icon visibility is controlled only by Options menu (main._applyOptionsVisibilityToScene)
         if self.urlItem:
             icon_size = nodeUtils.options.iconSize
             # One title row + small gap (base Node uses 2*icon_size; we use less)

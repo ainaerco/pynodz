@@ -238,7 +238,7 @@ class Node(QtWidgets.QGraphicsWidget):
         return constraint
 
     def setRect(self, rect):
-
+        rect_changed = rect != self._rect
         for c in self.connections:
             c.prepareGeometryChange()
             c.updatePath()
@@ -266,7 +266,8 @@ class Node(QtWidgets.QGraphicsWidget):
             self.dropdown.setPos(
                 self._rect.right() - self.dropdown.boundingRect().width() - 8, 3
             )
-        self.setColor(self.color)
+        if rect_changed:
+            self.setColor(self.color)
         if self.urlItem:
             icon_size = nodeUtils.options.iconSize
             self.urlItem.prepareGeometryChange()

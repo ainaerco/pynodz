@@ -4,3 +4,4 @@ downloads/
 .venv/
 .ruff_cache/
 unused/
+arnold_settings.json
