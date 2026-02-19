@@ -7,10 +7,26 @@ requires-python = ">=3.12"
 dependencies = [
     "bs4>=0.0.2",
     "pyqt6",
+    "pytest>=9.0.2",
+    "pytest-qt>=4.5.0",
     "pyyaml>=6.0",
     "qtpy>=2.4.3",
     "ruff>=0.15.1",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v"
+
+[tool.pyright]
+exclude = ["unused"]
+
 [tool.ruff]
 line-length = 80
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
+]
