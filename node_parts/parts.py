@@ -9,8 +9,8 @@ from qtpy.QtWidgets import (
 from qtpy.QtGui import QBrush, QPen, QCursor
 from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtSvgWidgets import QGraphicsSvgItem
-import nodeUtils
-from nodeUtils import NodeMimeData
+import node_utils
+from node_utils import NodeMimeData
 
 
 class TitleItem(QGraphicsTextItem):
@@ -19,7 +19,7 @@ class TitleItem(QGraphicsTextItem):
         self.setFocus(Qt.FocusReason.MouseFocusReason)
         self.parent_item = parent
         self.attr = attr
-        self.setFont(nodeUtils.options.titleFont)
+        self.setFont(node_utils.options.titleFont)
         if title:
             self.setDefaultTextColor(QColor(200, 200, 250))
 
@@ -38,9 +38,9 @@ class TitleItem(QGraphicsTextItem):
         if event is not None and event.key() != Qt.Key.Key_Return:
             super().keyPressEvent(event)
         else:
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
-            nodeUtils.options.undoStack.push(
+            node_utils.options.undoStack.push(
                 CommandSetNodeAttribute(
                     [self.parent_item], {self.attr: self.toPlainText()}
                 )
@@ -54,9 +54,9 @@ class TitleItem(QGraphicsTextItem):
             Qt.TextInteractionFlag.TextEditorInteraction
             == self.textInteractionFlags()
         ):
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
-            nodeUtils.options.undoStack.push(
+            node_utils.options.undoStack.push(
                 CommandSetNodeAttribute(
                     [self.parent_item], {self.attr: self.toPlainText()}
                 )
@@ -77,8 +77,8 @@ class NodeInput(QGraphicsRectItem):
 
     def setType(self, type):
         self._type = type
-        if type and type in nodeUtils.options.typeColors.keys():
-            self._brush.setColor(nodeUtils.options.typeColors[type])
+        if type and type in node_utils.options.typeColors.keys():
+            self._brush.setColor(node_utils.options.typeColors[type])
         self.update()
 
     def mousePressEvent(self, event):
@@ -108,7 +108,7 @@ class NodeInput(QGraphicsRectItem):
 class NodeResize(QGraphicsPixmapItem):
     def __init__(self, node, **kwargs):
         super().__init__(
-            nodeUtils.options.getAwesomePixmap("fa6s.maximize", 16),
+            node_utils.options.get_awesome_pixmap("fa6s.maximize", 16),
             node,
         )
         self.node = node
@@ -119,7 +119,7 @@ class NodeResize(QGraphicsPixmapItem):
         if event.button() != Qt.MouseButton.LeftButton:
             event.ignore()
             return
-        nodeUtils.options.setSelection([self.node])
+        node_utils.options.set_selection([self.node])
         drag = QDrag(event.widget())
         mime = NodeMimeData()
         data = QByteArray()
@@ -131,7 +131,7 @@ class NodeResize(QGraphicsPixmapItem):
 
 class DropDown(QGraphicsPixmapItem):
     def __init__(self, parent, options):
-        pixmap = options.getAwesomePixmap("fa6s.caret-down", options.iconSize)
+        pixmap = options.get_awesome_pixmap("fa6s.caret-down", options.iconSize)
         super().__init__(pixmap, parent)
         self.state = False
         self.parent_item = parent

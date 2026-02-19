@@ -2,10 +2,10 @@ from qtpy.QtGui import QPainterPath, QTransform
 from qtpy.QtCore import Qt, QRectF
 from qtpy.QtWidgets import QFileDialog, QMenu, QWidget
 
-from .Node import Node
-from nodeParts.Parts import NodeResize, NodeInput
-from htmlEditor import HtmlEditor
-import nodeUtils
+from .node import Node
+from node_parts.parts import NodeResize, NodeInput
+from html_editor import HtmlEditor
+import node_utils
 
 
 class NodeBlock(Node):
@@ -25,7 +25,6 @@ class NodeBlock(Node):
         return t.map(self.path)
 
     def setRect(self, rect):
-
         super().setRect(rect)
         if self.connector is not None:
             self.connector.setPos(self._rect.center().x(), self._rect.bottom())
@@ -60,19 +59,19 @@ class NodeBlock(Node):
 
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
             filename, _ = QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if filename:
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandSetNodeAttribute([self], {"icon": filename})
                 )
         elif action == clearIconAction and self.icon is not None:
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
-            nodeUtils.options.undoStack.push(
+            node_utils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"icon": None})
             )
         elif action == editNameAction and self.nameItem is not None:
@@ -100,10 +99,10 @@ class NodeBlock(Node):
 
         elif action == editKeywordsAction:
 
-            def on_keywords_edit(text):
-                from nodeCommand import CommandSetNodeAttribute
+            def onKeywordsEdit(text):
+                from node_command import CommandSetNodeAttribute
 
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}
                     )
@@ -114,7 +113,7 @@ class NodeBlock(Node):
                 {
                     "node": self,
                     "text": self.keywords,
-                    "func": on_keywords_edit,
+                    "func": onKeywordsEdit,
                     "type": "text",
                 },
             )

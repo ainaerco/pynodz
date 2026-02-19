@@ -1,10 +1,10 @@
 from qtpy.QtCore import Qt, QRectF
 from qtpy.QtWidgets import QMenu, QWidget
 
-import nodeUtils
-from htmlEditor import HtmlEditor
-from .Node import Node
-from nodeParts.Parts import TitleItem, NodeResize
+import node_utils
+from html_editor import HtmlEditor
+from .node import Node
+from node_parts.parts import TitleItem, NodeResize
 
 
 class NodeNote(Node):
@@ -15,7 +15,7 @@ class NodeNote(Node):
         doc = self.htmlItem.document()
         if doc:
             doc.setIndentWidth(20)
-        self.htmlItem.setPos(0, nodeUtils.options.iconSize)
+        self.htmlItem.setPos(0, node_utils.options.iconSize)
         if self.html:
             self.htmlItem.setHtml(self.html)
 
@@ -27,9 +27,11 @@ class NodeNote(Node):
 
     def setRect(self, rect):
         self._rect = rect
-        self._rect.setWidth(max(nodeUtils.options.iconSize, self._rect.width()))
+        self._rect.setWidth(
+            max(node_utils.options.iconSize, self._rect.width())
+        )
         self._rect.setHeight(
-            max(nodeUtils.options.iconSize, self._rect.height())
+            max(node_utils.options.iconSize, self._rect.height())
         )
         if self.htmlItem:
             self.htmlItem.setTextWidth(self._rect.width())
@@ -53,9 +55,9 @@ class NodeNote(Node):
 
     def mouseDoubleClickEvent(self, event):
         def f(text):
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
-            nodeUtils.options.undoStack.push(
+            node_utils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"html": text.toHtml()})
             )
 

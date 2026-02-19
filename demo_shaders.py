@@ -1,7 +1,7 @@
-"""Demo shader definitions for testing nodeAttrs.py without Arnold.
+"""Demo shader definitions for testing node_attrs.py without Arnold.
 
 This module provides sample shader definitions that exercise all attribute
-widget types in nodeAttrs.py, allowing demonstration of the node editor
+widget types in node_attrs.py, allowing demonstration of the node editor
 without external dependencies.
 """
 
@@ -9,7 +9,7 @@ without external dependencies.
 def getDemoShaders():
     """Return a dictionary of demo shader definitions.
 
-    Each shader demonstrates different attribute types from nodeAttrs.py:
+    Each shader demonstrates different attribute types from node_attrs.py:
     - BOOL, FLOAT, INT, ENUM, RGB, RGBA, VECTOR, POINT, POINT2
     - STRING, MATRIX
     - Array types: FLOAT[], POINT[], INT[], VECTOR[], MATRIX[]

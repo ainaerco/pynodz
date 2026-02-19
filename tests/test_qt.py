@@ -1,5 +1,5 @@
 def test_node_mime_data_set_get_object(qtbot):
-    from nodeUtils import NodeMimeData
+    from node_utils import NodeMimeData
 
     mime = NodeMimeData()
     obj = {"key": "value"}
@@ -9,7 +9,7 @@ def test_node_mime_data_set_get_object(qtbot):
 
 def test_node_mime_data_set_origin(qtbot):
     from qtpy.QtCore import QPointF
-    from nodeUtils import NodeMimeData
+    from node_utils import NodeMimeData
 
     mime = NodeMimeData()
     mime.setOrigin(QPointF(10, 20))

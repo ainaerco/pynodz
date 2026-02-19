@@ -71,10 +71,10 @@ from qtpy.QtWidgets import (
     QTableWidget,
 )
 
-import nodeUtils
-from nodeUtils import NodeMimeData, mergeDicts
-from nodeAttrs import NodePanel, lerp_2d_list
-from nodeCommand import (
+import node_utils
+from node_utils import NodeMimeData, merge_dicts
+from node_attrs import NodePanel, lerp_2d_list
+from node_command import (
     CommandSetNodeAttribute,
     CommandCreateNode,
     CommandMoveNode,
@@ -82,9 +82,9 @@ from nodeCommand import (
     CommandDeleteNodes,
     CommandDeleteConnections,
 )
-from nodeParts.Connection import Connection
+from node_parts.connection import Connection
 
-from nodeTypes import Node, NodeGroup, NodeShader, NodeBookmark
+from node_types import Node, NodeGroup, NodeShader, NodeBookmark
 
 import urllib.error
 import urllib.parse
@@ -99,7 +99,7 @@ except ImportError:
         return {}
 
 
-from demoShaders import getDemoShaders
+from demo_shaders import getDemoShaders
 
 
 try:
@@ -119,7 +119,7 @@ log.setLevel(logging.DEBUG)
 RECENT_FILES_COUNT = 5
 
 
-def _event_pos(event: Any) -> QPoint:
+def _eventPos(event: Any) -> QPoint:
     """Get position from a QDrag* or QMouse* event as QPoint."""
     pos = getattr(event, "pos", None) or getattr(event, "position", None)
     if callable(pos):
@@ -252,7 +252,7 @@ class OptionsDialog(QDialog):
         self.readSettings()
 
     def nodeRadiusChanged(self, z):
-        nodeUtils.options.nodeRadius = z
+        node_utils.options.nodeRadius = z
         p = cast(Any, self.parent())
         if p is not None and getattr(p, "viewport", None) is not None:
             p.viewport.update()
@@ -323,56 +323,56 @@ class NodeDialog(QWidget):
         self.toolLayout = QHBoxLayout(toolBox)
         toolSize = QSize(25, 25)
         newButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.file"), ""
+            node_utils.options.get_awesome_icon("fa6s.file"), ""
         )
         newButton.setFlat(True)
         newButton.setFixedSize(toolSize)
         newButton.setToolTip("New scene")
         self.toolLayout.addWidget(newButton)
         openButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.folder-open"), ""
+            node_utils.options.get_awesome_icon("fa6s.folder-open"), ""
         )
         openButton.setFlat(True)
         openButton.setFixedSize(toolSize)
         openButton.setToolTip("Open scene")
         self.toolLayout.addWidget(openButton)
         saveButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.floppy-disk"), ""
+            node_utils.options.get_awesome_icon("fa6s.floppy-disk"), ""
         )
         saveButton.setFlat(True)
         saveButton.setFixedSize(toolSize)
         saveButton.setToolTip("Save scene")
         self.toolLayout.addWidget(saveButton)
         alignVButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.arrows-up-down"), ""
+            node_utils.options.get_awesome_icon("fa6s.arrows-up-down"), ""
         )
         alignVButton.setFlat(True)
         alignVButton.setFixedSize(toolSize)
         alignVButton.setToolTip("Align vertical")
         self.toolLayout.addWidget(alignVButton)
         alignHButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.arrows-left-right"), ""
+            node_utils.options.get_awesome_icon("fa6s.arrows-left-right"), ""
         )
         alignHButton.setFlat(True)
         alignHButton.setFixedSize(toolSize)
         alignHButton.setToolTip("Align horizontal")
         self.toolLayout.addWidget(alignHButton)
         undoButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.rotate-left"), ""
+            node_utils.options.get_awesome_icon("fa6s.rotate-left"), ""
         )
         undoButton.setFlat(True)
         undoButton.setFixedSize(toolSize)
         undoButton.setToolTip("Undo (Ctrl+Z)")
         self.toolLayout.addWidget(undoButton)
         redoButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.rotate-right"), ""
+            node_utils.options.get_awesome_icon("fa6s.rotate-right"), ""
         )
         redoButton.setFlat(True)
         redoButton.setFixedSize(toolSize)
         redoButton.setToolTip("Redo (Ctrl+Y)")
         self.toolLayout.addWidget(redoButton)
         colorButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.palette"), ""
+            node_utils.options.get_awesome_icon("fa6s.palette"), ""
         )
         colorButton.setFlat(True)
         colorButton.setFixedSize(toolSize)
@@ -383,7 +383,7 @@ class NodeDialog(QWidget):
         self.searchEdit.setFixedSize(QSize(250, 25))
         self.toolLayout.addWidget(self.searchEdit)
         searchButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.magnifying-glass"), ""
+            node_utils.options.get_awesome_icon("fa6s.magnifying-glass"), ""
         )
         searchButton.setFlat(True)
         searchButton.setFixedSize(toolSize)
@@ -536,7 +536,7 @@ class NodeDialog(QWidget):
         self.splitter.addWidget(self.attrView)
         self._main_layout.addWidget(self.splitter)
         self.splitter.splitterMoved.connect(self.splitterMoved)
-        icon = nodeUtils.options.getAwesomeIcon("fa6s.diagram-project")
+        icon = node_utils.options.get_awesome_icon("fa6s.diagram-project")
         self._systemIcons = QFileIconProvider()
         self.setWindowIcon(icon)
         self.setLayout(self._main_layout)
@@ -608,35 +608,35 @@ class NodeDialog(QWidget):
             d: dict[str, Any] = {"name": str(text)}
 
             d["type"] = "NodeShader"
-            nodeUtils.options.clearSelection()
+            node_utils.options.clear_selection()
             d["posx"] = float(p.x())
             d["posy"] = float(p.y())
             d["shader"] = str(text)
             command = CommandCreateNode(self, d)
-            nodeUtils.options.undoStack.push(command)
-            nodeUtils.options.setSelection(
-                nodeUtils.options.nodes[command.getName()]
+            node_utils.options.undoStack.push(command)
+            node_utils.options.set_selection(
+                node_utils.options.nodes[command.getName()]
             )
             # nodes[self.ids].setPos(p.x(), p.y())
             # nodes[self.ids].shader = str(menuAction.text())
             # self.scene.addItem(nodes[self.ids])
 
     def search(self):
-        nodeUtils.options.clearSelection()
-        nodeUtils.options.addSelection(
+        node_utils.options.clear_selection()
+        node_utils.options.add_selection(
             [
                 n
-                for n in nodeUtils.options.nodes.values()
+                for n in node_utils.options.nodes.values()
                 if str(self.searchEdit.text()).lower() in n.keywords.lower()
             ]
         )
 
     def zoom(self):
-        if len(nodeUtils.options.selected) == 0:
+        if len(node_utils.options.selected) == 0:
             return
         r = QRectF()
         selected = [
-            x for x in nodeUtils.options.selected if isinstance(x, Node)
+            x for x in node_utils.options.selected if isinstance(x, Node)
         ]
         for s in selected:
             r = r.united(s.boundingRect().translated(s.pos()))
@@ -651,28 +651,28 @@ class NodeDialog(QWidget):
         )
 
     def keyMove(self, offset):
-        sel = nodeUtils.options.getSelectedClass(Node)
+        sel = node_utils.options.get_selected_class(Node)
         if len(sel) == 0:
             return
         positions = []
         for n in sel:
             positions += [n.pos() + offset]
-        cmd = nodeUtils.options.undoStack.command(
-            nodeUtils.options.undoStack.count() - 1
+        cmd = node_utils.options.undoStack.command(
+            node_utils.options.undoStack.count() - 1
         )
         if (
-            nodeUtils.options.undoStack.count() == 0
+            node_utils.options.undoStack.count() == 0
             or cmd is None
             or type(cmd) is not CommandMoveNode
         ):
             for n in sel:
                 cast(Any, n).old_pos = n.pos()
-            nodeUtils.options.undoStack.push(CommandMoveNode(sel, positions))
+            node_utils.options.undoStack.push(CommandMoveNode(sel, positions))
         elif getattr(cmd, "node_ids", None) == [
             getattr(x, "name", None) for x in sel
         ]:
-            nodeUtils.options.undoStack.undo()
-            nodeUtils.options.undoStack.push(CommandMoveNode(sel, positions))
+            node_utils.options.undoStack.undo()
+            node_utils.options.undoStack.push(CommandMoveNode(sel, positions))
 
     def up(self):
         self.keyMove(QPointF(0, -5))
@@ -722,7 +722,7 @@ class NodeDialog(QWidget):
             show_urls = self.showUrlsAction.isChecked()
         # Use options.nodes (source of truth); nodes are the same objects as in the scene.
         # Do setRect first (layout), then set visibility so NodeBookmark.setRect doesn't overwrite us.
-        for n in nodeUtils.options.nodes.values():
+        for n in node_utils.options.nodes.values():
             if not isinstance(n, NodeBookmark):
                 continue
             n.prepareGeometryChange()
@@ -772,10 +772,10 @@ class NodeDialog(QWidget):
 
     def showShadows(self, checked):
         if checked:
-            for n in nodeUtils.options.nodes.values():
+            for n in node_utils.options.nodes.values():
                 n.addShadow()
         else:
-            for n in nodeUtils.options.nodes.values():
+            for n in node_utils.options.nodes.values():
                 n.shadow.setColor(QColor(0, 0, 0, 0))
 
     def setStyleSheet(self, fname):  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -821,7 +821,7 @@ class NodeDialog(QWidget):
             proxy_name = self.settings.value("proxy_name", "")
             proxy_port = self.settings.value("proxy_port", "")
             set_proxy(proxy_name, proxy_port)
-        nodeUtils.options.nodeRadius = int(
+        node_utils.options.nodeRadius = int(
             self.settings.value("Options.nodeRadius", 5) or 5
         )
         z = int(self.settings.value("back_brightness", 50) or 50)
@@ -840,13 +840,13 @@ class NodeDialog(QWidget):
         self.recentFiles = self.settings.value("recent", [])
 
     def undo(self):
-        nodeUtils.options.undoStack.undo()
+        node_utils.options.undoStack.undo()
 
     def redo(self):
-        nodeUtils.options.undoStack.redo()
+        node_utils.options.undoStack.redo()
 
     def alignH(self):
-        sel = nodeUtils.options.getSelectedClass(Node)
+        sel = node_utils.options.get_selected_class(Node)
         if len(sel) == 0:
             return
         y = sel[0].pos().y()
@@ -856,10 +856,10 @@ class NodeDialog(QWidget):
         for n in sel:
             n.old_pos = n.pos()
             positions += [QPointF(n.pos().x(), y)]
-        nodeUtils.options.undoStack.push(CommandMoveNode(sel, positions))
+        node_utils.options.undoStack.push(CommandMoveNode(sel, positions))
 
     def alignV(self):
-        sel = nodeUtils.options.getSelectedClass(Node)
+        sel = node_utils.options.get_selected_class(Node)
         if len(sel) == 0:
             return
         x = sel[0].pos().x()
@@ -869,7 +869,7 @@ class NodeDialog(QWidget):
         for n in sel:
             n.old_pos = n.pos()
             positions += [QPointF(x, n.pos().y())]
-        nodeUtils.options.undoStack.push(CommandMoveNode(sel, positions))
+        node_utils.options.undoStack.push(CommandMoveNode(sel, positions))
 
     def addBookmark(self, d):
         url = (d.get("url") or "").strip()
@@ -902,11 +902,11 @@ class NodeDialog(QWidget):
         icon = download_icon(soup, url)
         if icon:
             d["icon"] = icon
-        nodeUtils.options.clearSelection()
+        node_utils.options.clear_selection()
         command = CommandCreateNode(self, d)
-        nodeUtils.options.undoStack.push(command)
-        nodeUtils.options.setSelection(
-            nodeUtils.options.nodes[command.getName()]
+        node_utils.options.undoStack.push(command)
+        node_utils.options.set_selection(
+            node_utils.options.nodes[command.getName()]
         )
 
     def paste(self):
@@ -927,12 +927,12 @@ class NodeDialog(QWidget):
         self.addBookmark(d)
 
     def switchColorPicker(self):
-        if nodeUtils.options.colorPicker:
-            self.scene.removeItem(nodeUtils.options.colorPicker)
-            nodeUtils.options.colorPicker = None
+        if node_utils.options.colorPicker:
+            self.scene.removeItem(node_utils.options.colorPicker)
+            node_utils.options.colorPicker = None
         else:
             picker = ColorPicker()
-            setattr(nodeUtils.options, "colorPicker", picker)
+            setattr(node_utils.options, "colorPicker", picker)
             self.viewport.updateColorPicker()
             self.scene.addItem(picker)
 
@@ -983,23 +983,27 @@ class NodeDialog(QWidget):
                     d = dump["nodes"][key]
                     ids = max(ids, d["id"])
                     # d['display_name'] = d['name'].rstrip("0123456789")
-                    nodeUtils.options.undoStack.push(CommandCreateNode(self, d))
+                    node_utils.options.undoStack.push(
+                        CommandCreateNode(self, d)
+                    )
             elif isinstance(dump["nodes"], list):
                 for d in dump["nodes"]:
                     ids = max(ids, d["id"])
                     # d['display_name'] = d['name'].rstrip("0123456789")
-                    nodeUtils.options.undoStack.push(CommandCreateNode(self, d))
+                    node_utils.options.undoStack.push(
+                        CommandCreateNode(self, d)
+                    )
             if "connections" in dump.keys():
                 for d in dump["connections"]:
                     ids = max(ids, d["id"])
-                    nodeUtils.options.undoStack.push(
+                    node_utils.options.undoStack.push(
                         CommandCreateConnection(self.scene, d)
                     )
-            for n in nodeUtils.options.nodes.values():
+            for n in node_utils.options.nodes.values():
                 if n.collapsed is True:
                     n.setCollapsed(False)
             self._refreshOptionsVisibility()
-            nodeUtils.options.setIds(ids)
+            node_utils.options.set_ids(ids)
             # if 'ids' in dump.keys():
             #     self.ids = dump['ids']
             # else:
@@ -1024,11 +1028,11 @@ class NodeDialog(QWidget):
             return
         try:
             save_nodes = {}
-            for nv in nodeUtils.options.nodes.values():
+            for nv in node_utils.options.nodes.values():
                 d = nv.toDict()
                 save_nodes[d["name"]] = d
             save_connections = []
-            for nc in nodeUtils.options.connections.values():
+            for nc in node_utils.options.connections.values():
                 save_connections += [nc.toDict()]
             rect = self.viewport.sceneRect()
             r = {
@@ -1052,7 +1056,7 @@ class NodeDialog(QWidget):
             with open(self.filename, "w", encoding="utf-8") as f:
                 f.write(data)
 
-            nodeUtils.options.undoStack.clear()
+            node_utils.options.undoStack.clear()
         except Exception as e:
             messageBox = QMessageBox()
             messageBox.critical(self, "Error", "An error has occured !\n%s" % e)
@@ -1065,31 +1069,31 @@ class NodeDialog(QWidget):
         if self.filename:
             self.saveFile()
             self.setWindowTitle("NodeBookmark Editor - %s" % self.filename)
-            nodeUtils.options.undoStack.clear()
+            node_utils.options.undoStack.clear()
 
     def clear(self):
         self.setWindowTitle("NodeBookmark Editor")
         # global connections
 
-        nodeUtils.options.selected = []
-        nodeUtils.options.clearNodes()
+        node_utils.options.selected = []
+        node_utils.options.clear_nodes()
         # self.ids = -1
-        nodeUtils.options.setIds(-1)
-        nodeUtils.options.clearConnections()
-        nodeUtils.options.undoStack.clear()
+        node_utils.options.set_ids(-1)
+        node_utils.options.clear_connections()
+        node_utils.options.undoStack.clear()
         self.scene.clear()
 
     def delete(self):
-        del_nodes = nodeUtils.options.getSelectedClass(Node)
+        del_nodes = node_utils.options.get_selected_class(Node)
         if len(del_nodes) > 0:
-            nodeUtils.options.clearSelection()
-            nodeUtils.options.undoStack.push(
+            node_utils.options.clear_selection()
+            node_utils.options.undoStack.push(
                 CommandDeleteNodes(self, del_nodes)
             )
-        del_conns = nodeUtils.options.getSelectedClass(Connection)
+        del_conns = node_utils.options.get_selected_class(Connection)
         if len(del_conns) > 0:
-            nodeUtils.options.clearSelection()
-            nodeUtils.options.undoStack.push(
+            node_utils.options.clear_selection()
+            node_utils.options.undoStack.push(
                 CommandDeleteConnections(self.scene, del_conns)
             )
 
@@ -1097,7 +1101,7 @@ class NodeDialog(QWidget):
         if event is None:
             return
         """
-        if nodeUtils.options.undoStack.count() > 0:
+        if node_utils.options.undoStack.count() > 0:
             ret = QMessageBox(
                 QMessageBox.Information,
                 "Save Changes",
@@ -1109,8 +1113,8 @@ class NodeDialog(QWidget):
             elif QMessageBox.Cancel == ret:
                 event.ignore()
         """
-        nodeUtils.options.saveArnoldSettings()
-        nodeUtils.options.undoStack.clear()
+        node_utils.options.save_arnold_settings()
+        node_utils.options.undoStack.clear()
         self.writeSettings()
         for d in self.findChildren(QDialog):
             # print d
@@ -1163,9 +1167,9 @@ class Scene(QGraphicsScene):
             item.dropEvent(event)
 
     def contextMenuEvent(self, event):
-        if len(nodeUtils.options.selected) == 0:
+        if len(node_utils.options.selected) == 0:
             return
-        n = nodeUtils.options.selected[-1]
+        n = node_utils.options.selected[-1]
         if not isinstance(n, NodeShader):
             return
 
@@ -1185,9 +1189,9 @@ class Scene(QGraphicsScene):
                 if x.attr["default"] != x._value
             ]
             for a in attrs:
-                nodeUtils.options.arnold = dict(
-                    mergeDicts(
-                        nodeUtils.options.arnold,
+                node_utils.options.arnold = dict(
+                    merge_dicts(
+                        node_utils.options.arnold,
                         {
                             n.shader: {
                                 a.attr["name"]: {"_default": a.attr["default"]}
@@ -1212,7 +1216,7 @@ class Scene(QGraphicsScene):
                     v[a.attr["name"]] = a.value
             # print n.values
             # print v,"updateAttribute"
-            nodeUtils.options.undoStack.push(
+            node_utils.options.undoStack.push(
                 CommandSetNodeAttribute([n], {"values": v})
             )
 
@@ -1247,23 +1251,23 @@ class View(QGraphicsView):
         return self.mapToScene(QRect(tl, br)).boundingRect()
 
     def updateColorPicker(self):
-        if nodeUtils.options.colorPicker:
+        if node_utils.options.colorPicker:
             z = self.mapToScene(QPoint(0, self.height()))
-            nodeUtils.options.colorPicker.prepareGeometryChange()
-            nodeUtils.options.colorPicker.setPos(
+            node_utils.options.colorPicker.prepareGeometryChange()
+            node_utils.options.colorPicker.setPos(
                 z.x(),
-                z.y() - nodeUtils.options.colorPicker.boundingRect().height(),
+                z.y() - node_utils.options.colorPicker.boundingRect().height(),
             )
-            nodeUtils.options.colorPicker.setScale(self.scaleFactor)
+            node_utils.options.colorPicker.setScale(self.scaleFactor)
 
     def resizeEvent(self, event):
         self.updateColorPicker()
 
     def wheelEvent(self, event):
-        if len(nodeUtils.options.selected) == 1 and isinstance(
-            nodeUtils.options.selected[0], Node
+        if len(node_utils.options.selected) == 1 and isinstance(
+            node_utils.options.selected[0], Node
         ):
-            n = nodeUtils.options.selected[0]
+            n = node_utils.options.selected[0]
             n.prepareGeometryChange()
 
             if (
@@ -1334,7 +1338,7 @@ class View(QGraphicsView):
         if event is None:
             return
         self.mouse_stack = [QPoint()] * 20
-        p = _event_pos(event)
+        p = _eventPos(event)
         self.old_pos = p
         self.origin = p
         mime = event.mimeData()
@@ -1346,7 +1350,7 @@ class View(QGraphicsView):
             if n is None or not getattr(n, "connector", None):
                 log.error("dragEnterEvent: node '%r' has no connector", n)
             else:
-                ep = _event_pos(event)
+                ep = _eventPos(event)
                 self.temp_connection = Connection(
                     {
                         "parent": n.pos() + n.connector.pos(),
@@ -1358,7 +1362,7 @@ class View(QGraphicsView):
                 if scene is not None:
                     scene.addItem(self.temp_connection)
         elif mime.hasFormat("node/move"):
-            for sel in nodeUtils.options.selected:
+            for sel in node_utils.options.selected:
                 cast(Any, sel).old_pos = sel.pos()
             sel = cast(NodeMimeData, mime).getObject()
             if sel is not None and type(sel) is NodeGroup:
@@ -1390,9 +1394,9 @@ class View(QGraphicsView):
             else:
                 self.origin = self.mapToScene(self.old_pos)
         elif mime.hasUrls():
-            nodeUtils.options.clearSelection()
+            node_utils.options.clear_selection()
         elif mime.hasFormat("scene/rubberband"):
-            ep = _event_pos(event)
+            ep = _eventPos(event)
             self.rubberband.setGeometry(
                 QRect(
                     cast(QPoint, self.old_pos),
@@ -1411,7 +1415,7 @@ class View(QGraphicsView):
         mime = event.mimeData()
         if mime is None:
             return
-        ep = _event_pos(event)
+        ep = _eventPos(event)
         if mime.hasFormat("scene/rubberband"):
             self.rubberband.setGeometry(QRect(self.old_pos, ep).normalized())
             return
@@ -1457,7 +1461,7 @@ class View(QGraphicsView):
                 else self.mapToScene(cast(Any, self.origin))
             )
             scene = self.scene()
-            for sel in nodeUtils.options.selected:
+            for sel in node_utils.options.selected:
                 sel_any = cast(Any, sel)
                 if type(sel) is NodeGroup:
                     for x in getattr(sel_any, "childs", []):
@@ -1478,10 +1482,10 @@ class View(QGraphicsView):
         return
 
         # Disconnect node behavior
-        if len(nodeUtils.options.selected) == 1 and isinstance(
-            nodeUtils.options.selected[0], Node
+        if len(node_utils.options.selected) == 1 and isinstance(
+            node_utils.options.selected[0], Node
         ):
-            sel = nodeUtils.options.selected[0]
+            sel = node_utils.options.selected[0]
             self.mouse_stack.append((event.pos() - self.old_pos))
             del self.mouse_stack[0]
             state = 0
@@ -1498,7 +1502,7 @@ class View(QGraphicsView):
                 ):
                     state = -1
             if state == -1 and len(sel.connections) > 0:
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandDeleteConnections(self.scene(), sel.connections)
                 )
                 self.mouse_stack = [QPoint()] * 20
@@ -1529,24 +1533,24 @@ class View(QGraphicsView):
         elif mime.hasFormat("node/move"):
             positions = []
             sel_nodes = []
-            for sel in nodeUtils.options.getSelectedClass(Node):
+            for sel in node_utils.options.get_selected_class(Node):
                 sel_nodes += [sel]
                 positions += [sel.pos()]
             if len(sel_nodes) > 0:
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandMoveNode(sel_nodes, positions)
                 )
-            ep = _event_pos(event)
+            ep = _eventPos(event)
             for item in self.items(ep):
                 if (
                     not isinstance(item, Node)
-                    or (item in nodeUtils.options.selected)
+                    or (item in node_utils.options.selected)
                     or type(item) is NodeGroup
                 ):
                     continue
-                selected = nodeUtils.options.selected
-                nodeUtils.options.clearSelection()
-                nodeUtils.options.undoStack.undo()
+                selected = node_utils.options.selected
+                node_utils.options.clear_selection()
+                node_utils.options.undoStack.undo()
                 for s in selected:
                     if not isinstance(s, Node):
                         continue
@@ -1556,7 +1560,7 @@ class View(QGraphicsView):
                         "child": getattr(s, "id", None),
                     }
 
-                    nodeUtils.options.undoStack.push(
+                    node_utils.options.undoStack.push(
                         CommandCreateConnection(self.scene(), d)
                     )
         elif mime.hasFormat("scene/rubberband"):
@@ -1567,11 +1571,11 @@ class View(QGraphicsView):
                 for x in self.items(rect)
                 if isinstance(x, Node) or type(x) is Connection
             ]
-            nodeUtils.options.setSelection(sel)
+            node_utils.options.set_selection(sel)
             return
         elif mime.hasFormat("node/connect"):
             item = cast(NodeMimeData, mime).getObject()
-            ep = _event_pos(event)
+            ep = _eventPos(event)
             s = self.items(ep)
             if s and len(s) > 0:
                 first = s[0]
@@ -1582,7 +1586,7 @@ class View(QGraphicsView):
                 }
                 scene = self.scene()
                 if scene is not None:
-                    nodeUtils.options.undoStack.push(
+                    node_utils.options.undoStack.push(
                         CommandCreateConnection(scene, d)
                     )
 
@@ -1591,7 +1595,7 @@ class View(QGraphicsView):
     def contextMenuEvent(self, event):
         if event is None:
             return
-        ep = _event_pos(event)
+        ep = _eventPos(event)
         for item in self.items(ep):
             if isinstance(item, Node) or type(item) is Connection:
                 super().contextMenuEvent(event)
@@ -1628,11 +1632,11 @@ class View(QGraphicsView):
             d["name"] = "Block"
 
         if "name" in d:
-            nodeUtils.options.clearSelection()
+            node_utils.options.clear_selection()
             command = CommandCreateNode(self.dialog, d)
-            nodeUtils.options.undoStack.push(command)
-            nodeUtils.options.setSelection(
-                nodeUtils.options.nodes[command.getName()]
+            node_utils.options.undoStack.push(command)
+            node_utils.options.set_selection(
+                node_utils.options.nodes[command.getName()]
             )
 
 
@@ -1676,17 +1680,17 @@ class ColorPickerItem(QGraphicsRectItem):
                 event.ignore()
             return
 
-        nodeUtils.options.undoStack.push(
+        node_utils.options.undoStack.push(
             CommandSetNodeAttribute(
-                nodeUtils.options.getSelectedClass(Node),
+                node_utils.options.get_selected_class(Node),
                 {"rgb": self.brush().color().name()},
             )
         )
 
         scene = self.scene()
-        if scene is not None and nodeUtils.options.colorPicker is not None:
-            scene.removeItem(nodeUtils.options.colorPicker)
-        nodeUtils.options.colorPicker = None
+        if scene is not None and node_utils.options.colorPicker is not None:
+            scene.removeItem(node_utils.options.colorPicker)
+        node_utils.options.colorPicker = None
 
 
 callGraph = None
@@ -1754,7 +1758,7 @@ class CallDialog(QDialog):
         self.callGraph = callGraph
         self.timer = QTimer()
         menuBar = QMenuBar()
-        optionsMenu = menuBar.addMenu("nodeUtils.options")
+        optionsMenu = menuBar.addMenu("node_utils.options")
         self.drawPerfomanceOption = QAction("View perfomance", self)
         self.drawPerfomanceOption.setCheckable(True)
         self.drawPerfomanceOption.triggered.connect(self.switchGraph)
@@ -1941,13 +1945,18 @@ class CallDialog(QDialog):
         self.callGraph.start(reset=False)
 
 
-if __name__ == "__main__":
+def run():
+    """Entry point for the nodes console script (uv run nodes)."""
     app = QApplication(sys.argv)
     QApplication.setDoubleClickInterval(400)
     QApplication.setStartDragTime(200)
     window = NodeDialog()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    run()
 
     # from pycallgraph import PyCallGraph
     # from json_output import JsonOutput

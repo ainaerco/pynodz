@@ -11,21 +11,21 @@ from qtpy.QtWidgets import (
     QMenu,
     QWidget,
 )
-from .Node import Node
-from nodeUtils import NodeMimeData
-from nodeParts.Parts import NodeInput
-from nodeAttrs import (
+from .node import Node
+from node_utils import NodeMimeData
+from node_parts.parts import NodeInput
+from node_attrs import (
     NodeAttrString,
     NodeAttrImage,
     NodeAttr,
-    getAttrByType,
+    get_attr_by_type,
     NodePanel,
 )
 from copy import deepcopy
 
-import nodeUtils
-from htmlEditor import HtmlEditor
-from nodeUtils import mergeDicts
+import node_utils
+from html_editor import HtmlEditor
+from node_utils import merge_dicts
 
 
 class NodeShader(Node):
@@ -39,25 +39,26 @@ class NodeShader(Node):
             self.dialog is not None
             and self.shader
             and self.shader in self.dialog.shaders.keys()
-            and self.shader in nodeUtils.options.arnold.keys()
+            and self.shader in node_utils.options.arnold.keys()
         ):
-            if "_output" in nodeUtils.options.arnold[self.shader].keys():
+            if "_output" in node_utils.options.arnold[self.shader].keys():
                 self.connector.setType(
-                    nodeUtils.options.arnold[self.shader]["_output"]
+                    node_utils.options.arnold[self.shader]["_output"]
                 )
             shader = self.dialog.shaders[self.shader]
             for a in shader["attributes_order"]:
                 attr = shader["attributes"][a]
                 if (
-                    attr["name"] in nodeUtils.options.arnold[self.shader].keys()
+                    attr["name"]
+                    in node_utils.options.arnold[self.shader].keys()
                     and "_pin"
-                    in nodeUtils.options.arnold[self.shader][
+                    in node_utils.options.arnold[self.shader][
                         attr["name"]
                     ].keys()
                 ):
                     self.pinUnpin(
                         attr,
-                        nodeUtils.options.arnold[self.shader][attr["name"]][
+                        node_utils.options.arnold[self.shader][attr["name"]][
                             "_pin"
                         ],
                     )
@@ -123,9 +124,9 @@ class NodeShader(Node):
         return res
 
     def pinUnpin(self, attr, pinned):
-        nodeUtils.options.arnold = dict(
-            mergeDicts(
-                nodeUtils.options.arnold,
+        node_utils.options.arnold = dict(
+            merge_dicts(
+                node_utils.options.arnold,
                 {self.shader: {attr["name"]: {"_pin": pinned}}},
             )
         )
@@ -150,7 +151,7 @@ class NodeShader(Node):
         item = self.addAttr(attr)
         self.pinnedAttributes[attr["name"]] = item
         item.prepareGeometryChange()
-        item.resize(200, nodeUtils.options.attributeFont.pixelSize() + 4)
+        item.resize(200, node_utils.options.attributeFont.pixelSize() + 4)
         ly = self.layout()
         if ly is not None:
             ly.addItem(item)  # type: ignore[union-attr]
@@ -158,10 +159,10 @@ class NodeShader(Node):
         self.updateGeometry()
 
     def updateAttribute(self, name, value):
-        from nodeCommand import CommandSetNodeAttribute
+        from node_command import CommandSetNodeAttribute
 
         v = {name: deepcopy(value)}
-        nodeUtils.options.undoStack.push(
+        node_utils.options.undoStack.push(
             CommandSetNodeAttribute([self], {"values": v})
         )
 
@@ -169,12 +170,12 @@ class NodeShader(Node):
         connectedAttrs = [
             x.attr for x in self.connections if x.child == self and x.attr
         ]
-        clas = getAttrByType(attr["type"])
+        clas = get_attr_by_type(attr["type"])
         if clas is None:
             clas = NodeAttr
         if self.shader == "image" and attr["name"] == "filename":
             clas = NodeAttrImage
-        item = clas(self, nodeUtils.options, attr)
+        item = clas(self, node_utils.options, attr)
 
         if attr["name"] in self.values.keys():
             item.value = deepcopy(self.values[attr["name"]])
@@ -185,13 +186,13 @@ class NodeShader(Node):
         if connectedAttrs is not None and attr["name"] in connectedAttrs:
             item.setConnected(True)
         if (
-            self.shader in nodeUtils.options.arnold.keys()
-            and attr["name"] in nodeUtils.options.arnold[self.shader].keys()
+            self.shader in node_utils.options.arnold.keys()
+            and attr["name"] in node_utils.options.arnold[self.shader].keys()
             and "_pin"
-            in nodeUtils.options.arnold[self.shader][attr["name"]].keys()
+            in node_utils.options.arnold[self.shader][attr["name"]].keys()
         ):
             item.pin.setState(
-                nodeUtils.options.arnold[self.shader][attr["name"]]["_pin"]
+                node_utils.options.arnold[self.shader][attr["name"]]["_pin"]
             )
         if "help" in attr.keys():
             item.setToolTip(attr["help"])
@@ -216,7 +217,7 @@ class NodeShader(Node):
         layout = QGraphicsLinearLayout(Qt.Orientation.Vertical)
         layout.setSpacing(7)
         attr = {"name": self.name, "type": "STRING", "default": ""}
-        nameItem = NodeAttrString(self, nodeUtils.options, attr)
+        nameItem = NodeAttrString(self, node_utils.options, attr)
         nameItem.resize(self.dialog.attrView.width() - 32, 16)
         layout.addItem(nameItem)
 
@@ -228,7 +229,7 @@ class NodeShader(Node):
             for pageName in shader["pages"].keys():
                 pageItem = NodePanel(
                     self,
-                    nodeUtils.options,
+                    node_utils.options,
                     {
                         "name": "",
                         "label": pageName[len("page00__:") :],
@@ -248,14 +249,14 @@ class NodeShader(Node):
                     item.setVisible(False)
                     item.prepareGeometryChange()
                     item.resize(
-                        100, nodeUtils.options.attributeFont.pixelSize() + 4
+                        100, node_utils.options.attributeFont.pixelSize() + 4
                     )
                     height += item.geometry().height() + 7
                     pageLayout.addItem(item)
 
                 pageItem.resize(
                     self.dialog.attrView.width() - 32,
-                    nodeUtils.options.attributeFont.pixelSize() + 4,
+                    node_utils.options.attributeFont.pixelSize() + 4,
                 )
                 pageItem.setLayout(pageLayout)
                 layout.addItem(pageItem)
@@ -266,7 +267,7 @@ class NodeShader(Node):
                 item.prepareGeometryChange()
                 item.resize(
                     self.dialog.attrView.width() - 32,
-                    nodeUtils.options.attributeFont.pixelSize() + 4,
+                    node_utils.options.attributeFont.pixelSize() + 4,
                 )
                 height += item.geometry().height() + 7
                 layout.addItem(item)
@@ -299,9 +300,9 @@ class NodeShader(Node):
             }
             scene = self.scene()
             if scene is not None:
-                from nodeCommand import CommandCreateConnection
+                from node_command import CommandCreateConnection
 
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandCreateConnection(scene, d)
                 )
             return
@@ -334,9 +335,9 @@ class NodeShader(Node):
         }
         scene = self.scene()
         if scene is not None:
-            from nodeCommand import CommandCreateConnection
+            from node_command import CommandCreateConnection
 
-            nodeUtils.options.undoStack.push(CommandCreateConnection(scene, d))
+            node_utils.options.undoStack.push(CommandCreateConnection(scene, d))
 
     def contextMenuEvent(self, event):
         if event is None:
@@ -351,19 +352,19 @@ class NodeShader(Node):
         setOutputAction = menu.addAction("Set output type")
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
             filename, _ = QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if filename:
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandSetNodeAttribute([self], {"icon": filename})
                 )
         elif action == clearIconAction and self.icon is not None:
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
-            nodeUtils.options.undoStack.push(
+            node_utils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"icon": None})
             )
         elif action == editNameAction and self.nameItem is not None:
@@ -373,10 +374,10 @@ class NodeShader(Node):
             self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)
         elif action == editKeywordsAction:
 
-            def on_keywords_edit(text):
-                from nodeCommand import CommandSetNodeAttribute
+            def onKeywordsEdit(text):
+                from node_command import CommandSetNodeAttribute
 
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}
                     )
@@ -387,7 +388,7 @@ class NodeShader(Node):
                 {
                     "node": self,
                     "text": self.keywords,
-                    "func": on_keywords_edit,
+                    "func": onKeywordsEdit,
                     "type": "text",
                 },
             )
@@ -397,12 +398,12 @@ class NodeShader(Node):
                 self.dialog,
                 "QInputDialog::getText()",
                 "Set shader output type:",
-                nodeUtils.options.typeColors.keys(),
+                node_utils.options.typeColors.keys(),
             )
             if text[1]:
-                nodeUtils.options.arnold = dict(
-                    mergeDicts(
-                        nodeUtils.options.arnold,
+                node_utils.options.arnold = dict(
+                    merge_dicts(
+                        node_utils.options.arnold,
                         {self.shader: {"_output": str(text[0])}},
                     )
                 )

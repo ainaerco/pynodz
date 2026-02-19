@@ -8,8 +8,8 @@ from qtpy.QtCore import QObject, QMimeData
 from qtpy.QtWidgets import QApplication
 
 
-def getNodeClass(x):
-    from nodeTypes import (
+def get_node_class(x):
+    from node_types import (
         Node,  # noqa: F401
         NodeGroup,  # noqa: F401
         NodeShader,  # noqa: F401
@@ -23,7 +23,7 @@ def getNodeClass(x):
     return locals()[x]
 
 
-def normalizeName(name):
+def normalize_name(name):
     we = re.sub(r"(\s{1,}|\-{1,}|\_{1,})+", "_", name)
     lowers = "abcdefghijklmnopqrstuvwxyz"
     skips = "_"
@@ -43,7 +43,7 @@ def normalizeName(name):
     return result
 
 
-def incrementName(name, dic):
+def increment_name(name, dic):
     """
     Increments name index by given dictinary
     Dictinary keys are names, values are number of instances
@@ -60,7 +60,7 @@ def incrementName(name, dic):
     return res
 
 
-def listRemove(lst, item):
+def list_remove(lst, item):
     """
     Removes item or items from list if it's exists
     List is referenced
@@ -72,14 +72,14 @@ def listRemove(lst, item):
         pass
 
 
-def mergeDicts(dict1, dict2):
+def merge_dicts(dict1, dict2):
     """
     Result should be converted to dict()
     """
     for k in set(dict1.keys()).union(dict2.keys()):
         if k in dict1 and k in dict2:
             if isinstance(dict1[k], dict) and isinstance(dict2[k], dict):
-                yield (k, dict(mergeDicts(dict1[k], dict2[k])))
+                yield (k, dict(merge_dicts(dict1[k], dict2[k])))
             else:
                 # If one of the values is not a dict, you can't continue merging it.
                 # Value from second dict overrides one in first and we move on.
@@ -133,7 +133,7 @@ class NodesOptions(QObject):
     def __init__(self):
         super().__init__()
         self.undoStack = QUndoStack(self)
-        self.arnold = self.loadArnoldSettings()
+        self.arnold = self.load_arnold_settings()
         self.splineStep = 20
         self.ids = -1
         self.iconSize = 18
@@ -166,38 +166,38 @@ class NodesOptions(QObject):
             "POINT2": QColor(100, 100, 10),
         }
 
-    def addId(self):
+    def add_id(self):
         self.ids += 1
 
-    def setIds(self, value):
+    def set_ids(self, value):
         self.ids = value
 
-    def addNode(self, name, val):
+    def add_node(self, name, val):
         self.nodes[name] = val
 
-    def deleteNode(self, name):
+    def delete_node(self, name):
         del self.nodes[name]
 
-    def clearNodes(self):
+    def clear_nodes(self):
         self.nodes.clear()
 
-    def addConnection(self, name, val):
+    def add_connection(self, name, val):
         self.connections[name] = val
 
-    def deleteConnection(self, name):
+    def delete_connection(self, name):
         del self.connections[name]
 
-    def clearConnections(self):
+    def clear_connections(self):
         self.connections.clear()
 
-    def saveArnoldSettings(self):
+    def save_arnold_settings(self):
         path = "arnold_settings.json"
         js = json.dumps(self.arnold, sort_keys=False, indent=4)
         f = open(path, "w")
         f.write(js)
         f.close()
 
-    def loadArnoldSettings(self):
+    def load_arnold_settings(self):
         path = "arnold_settings.json"
         result = {}
         if not os.path.isfile(path):
@@ -207,7 +207,7 @@ class NodesOptions(QObject):
             result = json.loads(r)
         return result
 
-    def getIcon(self, icon, resize=True):
+    def get_icon(self, icon, resize=True):
         if icon not in self.icons.keys():
             pix = QPixmap(icon)
             if pix.isNull():
@@ -217,7 +217,7 @@ class NodesOptions(QObject):
             self.icons[icon] = pix
         return self.icons[icon]
 
-    def getAwesomeIcon(self, name, color=None):
+    def get_awesome_icon(self, name, color=None):
         """Get Qt Awesome icon by name (e.g., 'fa6s.file').
 
         Args:
@@ -231,7 +231,7 @@ class NodesOptions(QObject):
             color = QApplication.palette().text().color()
         return qta.icon(name, color=color)
 
-    def getAwesomePixmap(self, name, size=None, color=None):
+    def get_awesome_pixmap(self, name, size=None, color=None):
         """Get Qt Awesome icon as QPixmap for graphics items.
 
         Args:
@@ -250,17 +250,17 @@ class NodesOptions(QObject):
         icon = qta.icon(name, color=color)
         return icon.pixmap(size, size)
 
-    def saveTempImage(self, pixmap, name):
+    def save_temp_image(self, pixmap, name):
         pixmap.save()
 
-    def addSelection(self, nodes):
+    def add_selection(self, nodes):
         if not isinstance(nodes, list):
             nodes = [nodes]
         self.selected += nodes
         for n in nodes:
             n.setSelected(True)
 
-    def setSelection(self, nodes):
+    def set_selection(self, nodes):
         if not isinstance(nodes, list):
             nodes = [nodes]
         for n in self.selected:
@@ -269,19 +269,19 @@ class NodesOptions(QObject):
         for n in nodes:
             n.setSelected(True)
 
-    def removeSelection(self, nodes):
+    def remove_selection(self, nodes):
         if not isinstance(nodes, list):
             nodes = [nodes]
         for n in nodes:
             n.setSelected(False)
-            listRemove(self.selected, n)
+            list_remove(self.selected, n)
 
-    def clearSelection(self):
+    def clear_selection(self):
         for sel in self.selected:
             sel.setSelected(False)
         self.selected = []
 
-    def getSelectedClass(self, c):
+    def get_selected_class(self, c):
         return [x for x in self.selected if isinstance(x, c)]
 
 

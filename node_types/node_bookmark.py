@@ -9,10 +9,10 @@ from qtpy.QtWidgets import (
     QMenu,
     QWidget,
 )
-import nodeUtils
-from .Node import Node
-from nodeParts.Parts import TitleItem, NodeResize
-from htmlEditor import HtmlEditor
+import node_utils
+from .node import Node
+from node_parts.parts import TitleItem, NodeResize
+from html_editor import HtmlEditor
 
 icon_size = 24
 ICONS = {}
@@ -51,7 +51,7 @@ class NodeBookmark(Node):
                 self.iconItem.setPos(5, 5)
 
         # Ensure height fits title row + small gap + URL row (avoid clipping)
-        opts_icon_size = nodeUtils.options.iconSize
+        opts_icon_size = node_utils.options.iconSize
         min_height = opts_icon_size + 4 + 20  # title row + gap + url line
         if self._rect.height() < min_height:
             self._rect = QRectF(0, 0, self._rect.width(), min_height)
@@ -77,8 +77,10 @@ class NodeBookmark(Node):
     def setRect(self, rect):
         super().setRect(rect)
         # Icon visibility is controlled only by Options menu (main._applyOptionsVisibilityToScene)
-        if self.urlItem:
-            icon_size = nodeUtils.options.iconSize
+        # urlItem may not exist yet when setRect is called from Node.init -> fromDict during load
+        urlItem = getattr(self, "urlItem", None)
+        if urlItem:
+            icon_size = node_utils.options.iconSize
             # One title row + small gap (base Node uses 2*icon_size; we use less)
             url_gap = 4
             if self.dialog:
@@ -88,15 +90,16 @@ class NodeBookmark(Node):
             else:
                 first_row = icon_size
             y = first_row + url_gap
-            self.urlItem.prepareGeometryChange()
-            self.urlItem.setPos(0, y)
+            urlItem.prepareGeometryChange()
+            urlItem.setPos(0, y)
 
     def fromDict(self, d):
         Node.fromDict(self, d)
         if "url" in d.keys():
             self.url = d["url"]
-            if self.urlItem:
-                self.urlItem.setPlainText(self.url)
+            urlItem = getattr(self, "urlItem", None)
+            if urlItem:
+                urlItem.setPlainText(self.url)
 
     def toDict(self):
         res = Node.toDict(self)
@@ -123,13 +126,13 @@ class NodeBookmark(Node):
         editKeywordsAction = menu.addAction("Edit keywords")
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            from nodeCommand import CommandSetNodeAttribute
+            from node_command import CommandSetNodeAttribute
 
             filename, _ = QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if filename:
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandSetNodeAttribute([self], {"icon": filename})
                 )
         elif action == editNameAction and self.nameItem is not None:
@@ -148,10 +151,10 @@ class NodeBookmark(Node):
                 clipboard.setText(self.url)
         elif action == editKeywordsAction:
 
-            def on_keywords_edit(text):
-                from nodeCommand import CommandSetNodeAttribute
+            def onKeywordsEdit(text):
+                from node_command import CommandSetNodeAttribute
 
-                nodeUtils.options.undoStack.push(
+                node_utils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}
                     )
@@ -162,7 +165,7 @@ class NodeBookmark(Node):
                 {
                     "node": self,
                     "text": self.keywords,
-                    "func": on_keywords_edit,
+                    "func": onKeywordsEdit,
                     "type": "text",
                 },
             )

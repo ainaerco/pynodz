@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "nodes"
 version = "0.1.0"
@@ -6,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "bs4>=0.0.2",
+    "markdown>=3.5.0",
     "pyqt6",
     "pytest>=9.0.2",
     "pytest-qt>=4.5.0",
@@ -13,6 +18,24 @@ dependencies = [
     "qtawesome>=1.4.0",
     "qtpy>=2.4.3",
     "ruff>=0.15.1",
+]
+
+[project.scripts]
+nodes = "main:run"
+
+[tool.setuptools.packages.find]
+include = ["node_types*", "node_parts*"]
+
+[tool.setuptools]
+py-modules = [
+    "main",
+    "node_utils",
+    "node_attrs",
+    "node_command",
+    "demo_shaders",
+    "html_editor",
+    "markdown_editor",
+    "bezier",
 ]
 
 [tool.pytest.ini_options]

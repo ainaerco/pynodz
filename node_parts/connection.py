@@ -9,13 +9,13 @@ try:
 except ImportError:
     pybezier = None  # optional dependency
 from math import cos, sin, atan2
-import nodeUtils
+import node_utils
 
 
 class Connection(QGraphicsItem):
     def __init__(self, d):
         super().__init__()
-        from nodeParts.Parts import TitleItem
+        from node_parts.parts import TitleItem
 
         self.p_x = []
         self.p_y = []
@@ -56,7 +56,6 @@ class Connection(QGraphicsItem):
         return self.path
 
     def updatePath(self):
-
         if self.constrain:
             t = QTransform()
             if (
@@ -111,8 +110,8 @@ class Connection(QGraphicsItem):
 
         S = bezier.Bezier(P)
         self.path.moveTo(P[0][0], P[0][1])
-        step_size = 1 / float(nodeUtils.options.splineStep)
-        for i in range(1, nodeUtils.options.splineStep + 1):
+        step_size = 1 / float(node_utils.options.splineStep)
+        for i in range(1, node_utils.options.splineStep + 1):
             t_ = i * step_size
             # try:
             x, y = S(t_)
@@ -133,7 +132,7 @@ class Connection(QGraphicsItem):
         for i in range(len(li) / 2):
             x_intpol += [li[i * 2]]
             y_intpol += [li[i * 2 + 1]]
-        # x_intpol, y_intpol = bezier.CatmullRom(self.p_x, self.p_y, nodeUtils.options.splineStep/3)
+        # x_intpol, y_intpol = bezier.CatmullRom(self.p_x, self.p_y, node_utils.options.splineStep/3)
 
         self.path.moveTo(x_intpol[0], y_intpol[0])
         for i in range(1, len(x_intpol)):

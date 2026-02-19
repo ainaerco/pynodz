@@ -1,7 +1,7 @@
 from qtpy.QtGui import QFontMetrics, QColor, QLinearGradient, QBrush
 from qtpy.QtCore import QPointF
-from .Node import Node
-import nodeUtils
+from .node import Node
+import node_utils
 
 
 class NodeGraph(Node):
@@ -12,7 +12,7 @@ class NodeGraph(Node):
         pass
 
     def setRect(self, rect):
-        fm = QFontMetrics(nodeUtils.options.titleFont)
+        fm = QFontMetrics(node_utils.options.titleFont)
         width = max(rect.width(), fm.horizontalAdvance(self.name) + 20)
         rect.setWidth(width)
         super().setRect(rect)
@@ -54,14 +54,14 @@ class NodeGraph(Node):
             positions += [QPointF(x, y)]
             child.old_pos = child.pos()
             y += child._rect.height() + 5
-        from nodeCommand import CommandMoveNode
+        from node_command import CommandMoveNode
 
-        nodeUtils.options.undoStack.push(
+        node_utils.options.undoStack.push(
             CommandMoveNode(self.childs, positions)
         )
 
     def mouseDoubleClickEvent(self, event):
-        def get_childs(node):
+        def getChilds(node):
             nodeList = [node]
 
             for n in nodeList:
@@ -72,6 +72,6 @@ class NodeGraph(Node):
 
             return nodeList
 
-        li = get_childs(self)
+        li = getChilds(self)
         for node in li:
             node.alignChilds()

@@ -1,12 +1,11 @@
 from qtpy.QtGui import QPen, QColor, QLinearGradient, QBrush
 from qtpy.QtCore import Qt, QPointF, QRectF
-from .Node import Node
-import nodeUtils
+from .node import Node
+import node_utils
 
 
 class NodeGroup(Node):
     def __init__(self, d, dialog=None):
-
         Node.__init__(self, d, dialog)
 
         self.setAcceptDrops(True)
@@ -78,6 +77,6 @@ class NodeGroup(Node):
         painter.setPen(self.pen)
         painter.drawRoundedRect(
             self._rect,
-            nodeUtils.options.nodeRadius,
-            nodeUtils.options.nodeRadius,
+            node_utils.options.nodeRadius,
+            node_utils.options.nodeRadius,
         )

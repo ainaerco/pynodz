@@ -26,7 +26,7 @@ from qtpy.QtWidgets import (
     QVBoxLayout,
 )
 
-import nodeUtils
+import node_utils
 
 
 class HtmlEditor(QDialog):
@@ -51,28 +51,28 @@ class HtmlEditor(QDialog):
         toolSize = QtCore.QSize(25, 25)
 
         newButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.folder-open"), ""
+            node_utils.options.get_awesome_icon("fa6s.folder-open"), ""
         )
         newButton.setFlat(True)
         newButton.setFixedSize(toolSize)
         newButton.setToolTip("New scene")
 
         saveButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.floppy-disk"), ""
+            node_utils.options.get_awesome_icon("fa6s.floppy-disk"), ""
         )
         saveButton.setFlat(True)
         saveButton.setFixedSize(toolSize)
         saveButton.setToolTip("Save scene")
 
         undoButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.rotate-left"), ""
+            node_utils.options.get_awesome_icon("fa6s.rotate-left"), ""
         )
         undoButton.setFlat(True)
         undoButton.setFixedSize(toolSize)
         undoButton.setToolTip("Undo (Ctrl+Z)")
 
         redoButton = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.rotate-right"), ""
+            node_utils.options.get_awesome_icon("fa6s.rotate-right"), ""
         )
         redoButton.setFlat(True)
         redoButton.setFixedSize(toolSize)
@@ -91,62 +91,66 @@ class HtmlEditor(QDialog):
             self.font_size.addItem(str(i))
         self.font_size.setFixedSize(QtCore.QSize(40, 25))
 
-        bold = QPushButton(nodeUtils.options.getAwesomeIcon("fa6s.bold"), "")
+        bold = QPushButton(node_utils.options.get_awesome_icon("fa6s.bold"), "")
         bold.setFixedSize(toolSize)
         bold.setFlat(True)
         italic = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.italic"), ""
+            node_utils.options.get_awesome_icon("fa6s.italic"), ""
         )
         italic.setFixedSize(toolSize)
         italic.setFlat(True)
         underline = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.underline"), ""
+            node_utils.options.get_awesome_icon("fa6s.underline"), ""
         )
         underline.setFixedSize(toolSize)
         underline.setFlat(True)
         unindent = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.outdent"), ""
+            node_utils.options.get_awesome_icon("fa6s.outdent"), ""
         )
         unindent.setFixedSize(toolSize)
         unindent.setFlat(True)
         indent = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.indent"), ""
+            node_utils.options.get_awesome_icon("fa6s.indent"), ""
         )
         indent.setFixedSize(toolSize)
         indent.setFlat(True)
         bullet = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.list-ul"), ""
+            node_utils.options.get_awesome_icon("fa6s.list-ul"), ""
         )
         bullet.setFixedSize(toolSize)
         bullet.setFlat(True)
         number = QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.list-ol"), ""
+            node_utils.options.get_awesome_icon("fa6s.list-ol"), ""
         )
         number.setFixedSize(toolSize)
         number.setFlat(True)
-        image = QPushButton(nodeUtils.options.getAwesomeIcon("fa6s.image"), "")
+        image = QPushButton(
+            node_utils.options.get_awesome_icon("fa6s.image"), ""
+        )
         image.setFixedSize(toolSize)
         image.setFlat(True)
-        table = QPushButton(nodeUtils.options.getAwesomeIcon("fa6s.table"), "")
+        table = QPushButton(
+            node_utils.options.get_awesome_icon("fa6s.table"), ""
+        )
         table.setFixedSize(toolSize)
         table.setFlat(True)
 
         self.align = QComboBox()
         self.align.addItem("")
         self.align.setItemIcon(
-            0, nodeUtils.options.getAwesomeIcon("fa6s.align-left")
+            0, node_utils.options.get_awesome_icon("fa6s.align-left")
         )
         self.align.addItem("")
         self.align.setItemIcon(
-            1, nodeUtils.options.getAwesomeIcon("fa6s.align-center")
+            1, node_utils.options.get_awesome_icon("fa6s.align-center")
         )
         self.align.addItem("")
         self.align.setItemIcon(
-            2, nodeUtils.options.getAwesomeIcon("fa6s.align-right")
+            2, node_utils.options.get_awesome_icon("fa6s.align-right")
         )
         self.align.addItem("")
         self.align.setItemIcon(
-            3, nodeUtils.options.getAwesomeIcon("fa6s.align-justify")
+            3, node_utils.options.get_awesome_icon("fa6s.align-justify")
         )
         self.align.setFixedSize(QtCore.QSize(30, 25))
         self.align.setStyleSheet(

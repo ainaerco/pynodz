@@ -1,12 +1,12 @@
 from qtpy.QtCore import Qt, QRectF
 from qtpy.QtWidgets import QGraphicsLinearLayout, QMenu, QWidget
 
-from .Node import Node
-from nodeParts.Parts import NodeInput
-import nodeUtils
+from .node import Node
+from node_parts.parts import NodeInput
+import node_utils
 from copy import deepcopy
-from nodeUtils import incrementName
-from nodeAttrs import getAttrByType, NodeAttr
+from node_utils import increment_name
+from node_attrs import get_attr_by_type, NodeAttr
 
 
 class NodeControl(Node):
@@ -101,7 +101,7 @@ class NodeControl(Node):
         item = self.addAttr(attr)
         self.pinnedAttributes[attr["name"]] = item
         item.prepareGeometryChange()
-        item.resize(200, nodeUtils.options.attributeFont.pixelSize() + 4)
+        item.resize(200, node_utils.options.attributeFont.pixelSize() + 4)
         self.graphicLayout.addItem(item)
         connector = NodeInput(self)
         connector.setRect(QRectF(-5, -5, 10, 10))
@@ -124,17 +124,17 @@ class NodeControl(Node):
         action = menu.exec(event.screenPos())
         if action == addFloatControl:
             name = "float_control"
-            name = incrementName(name, self.attrNames)
+            name = increment_name(name, self.attrNames)
             attr = {"default": 0, "type": "FLOAT", "name": name}
             self.pinUnpin(attr, True)
         elif action == addVectorControl:
             name = "vector_control"
-            name = incrementName(name, self.attrNames)
+            name = increment_name(name, self.attrNames)
             attr = {"default": [0, 0, 0], "type": "VECTOR", "name": name}
             self.pinUnpin(attr, True)
         elif action == addStringControl:
             name = "string_control"
-            name = incrementName(name, self.attrNames)
+            name = increment_name(name, self.attrNames)
             attr = {"default": "", "type": "STRING", "name": name}
             self.pinUnpin(attr, True)
 
@@ -154,10 +154,10 @@ class NodeControl(Node):
         return res
 
     def updateAttribute(self, name, value):
-        from nodeCommand import CommandSetNodeAttribute
+        from node_command import CommandSetNodeAttribute
 
         v = {name: deepcopy(value)}
-        nodeUtils.options.undoStack.push(
+        node_utils.options.undoStack.push(
             CommandSetNodeAttribute([self], {"values": v})
         )
 
@@ -165,10 +165,10 @@ class NodeControl(Node):
         connectedAttrs = [
             x.attr for x in self.connections if x.child == self and x.attr
         ]
-        clas = getAttrByType(attr["type"])
+        clas = get_attr_by_type(attr["type"])
         if clas is None:
             clas = NodeAttr
-        item = clas(self, nodeUtils.options, attr)
+        item = clas(self, node_utils.options, attr)
         if attr["name"] in self.values.keys():
             item.value = deepcopy(self.values[attr["name"]])
         else:

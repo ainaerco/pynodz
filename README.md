@@ -29,13 +29,13 @@ Opens the node editor window (`NodeDialog`): scene with nodes, connections, cont
 | Path | Purpose |
 |------|--------|
 | `main.py` | Entry point, `NodeDialog`, `Scene`, `View`, menus, options dialog |
-| `nodeUtils.py` | `NodesOptions`, `NodeMimeData`, helpers: `getNodeClass`, `normalizeName`, `incrementName`, `listRemove`, `mergeDicts` |
-| `nodeAttrs.py` | Attribute widgets: Bool, Float, Int, Enum, RGB/RGBA, Vector, Matrix, String, Spline, Ramp, Array, Image, Panel; `getAttrByType`, `getAttrDefault` |
-| `nodeCommand.py` | Undo commands: move node, animated move, set attribute, set color, create/delete node, create/delete connection |
-| `nodeTypes/` | Node classes: `Node`, `NodeShader`, `NodeGroup`, `NodeBookmark`, `NodeBlock`, `NodeControl`, `NodeGraph`, `NodeNote` |
-| `nodeParts/` | `Connection`, `Parts` (TitleItem, NodeInput, NodeResize, DropDown) |
+| `node_utils.py` | `NodesOptions`, `NodeMimeData`, helpers: `get_node_class`, `normalizeName`, `increment_name`, `listRemove`, `mergeDicts` |
+| `node_attrs.py` | Attribute widgets: Bool, Float, Int, Enum, RGB/RGBA, Vector, Matrix, String, Spline, Ramp, Array, Image, Panel; `getAttrByType`, `getAttrDefault` |
+| `node_command.py` | Undo commands: move node, animated move, set attribute, set color, create/delete node, create/delete connection |
+| `node_types/` | Node classes: `Node`, `NodeShader`, `NodeGroup`, `NodeBookmark`, `NodeBlock`, `NodeControl`, `NodeGraph`, `NodeNote` |
+| `node_parts/` | `Connection`, `Parts` (TitleItem, NodeInput, NodeResize, DropDown) |
 | `bezier.py` | Bezier/spline helpers |
-| `htmlEditor.py` | HTML editing for node content |
+| `html_editor.py` | HTML editing for node content |
 | `tests/` | Pytest tests (`test_qt.py`, `test_nodeUtils.py`) |
 
 ## Node types

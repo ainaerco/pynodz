@@ -68,14 +68,14 @@ except ImportError:
 if TYPE_CHECKING:
     from qtpy.QtWidgets import QWidget
 
-from nodeUtils import NodeMimeData
-from nodeParts.Parts import DropDown
+from node_utils import NodeMimeData
+from node_parts.parts import DropDown
 from random import random
 
 
 def _is_node_shader(obj):
-    """Avoid circular import: nodeTypes.NodeShader imports nodeAttrs."""
-    from nodeTypes.NodeShader import NodeShader
+    """Avoid circular import: node_types.node_shader imports node_attrs."""
+    from node_types.node_shader import NodeShader
 
     return isinstance(obj, NodeShader)
 
@@ -84,12 +84,11 @@ def lerp_2d_list(a, b, s):
     """
     source,target,value
     """
-    # print lerp_2d_list
     (a1, a2), (b1, b2) = a, b
     return b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
 
 
-def getAttrByType(typ):
+def get_attr_by_type(typ):
     if typ == "BOOL":
         return NodeAttrBool
     elif typ == "FLOAT":
@@ -136,7 +135,7 @@ def getAttrByType(typ):
         return None
 
 
-def getAttrDefault(typ):
+def get_attr_default(typ):
     if typ == "BOOL":
         return True
     elif typ == "FLOAT":
@@ -290,7 +289,7 @@ class StringTextItem(QGraphicsTextItem):
         super().keyPressEvent(event)
 
 
-def _numeric_display_value(value, mask):
+def _numericDisplayValue(value, mask):
     """Format value for NumericTextItem; value may be number, str, or other."""
     if isinstance(value, (int, float)):
         return mask % value
@@ -304,7 +303,7 @@ def _numeric_display_value(value, mask):
 
 class NumericTextItem(StringTextItem):
     def __init__(self, parent, options, value, mask, index=None):
-        display = _numeric_display_value(value, mask)
+        display = _numericDisplayValue(value, mask)
         super().__init__(parent, options, display, index)
 
         self.mask = mask
@@ -367,6 +366,7 @@ class NodeAttr(QGraphicsWidget):
         self.setZValue(1)
         self.attr = attr
         self.options = options
+        self._node = parent  # node that owns this attr (may differ from parentItem in dialog)
         self._type = attr["type"]
         if isinstance(attr["default"], list):
             self._value = deepcopy(attr["default"])
@@ -1099,7 +1099,7 @@ class NodeAttrImage(NodeAttr):
     def __init__(self, parent, options, attr):
         super().__init__(parent, options, attr)
         self.pixmap = QGraphicsPixmapItem(
-            options.getAwesomePixmap("fa6s.image", 64),
+            options.get_awesome_pixmap("fa6s.image", 64),
             self,
         )
         self.textItem = StringTextItem(self, self.options, attr["default"])
@@ -1361,11 +1361,11 @@ class NodeAttrArray(NodeAttr):
         d["name"] = self.attr["name"] + str(len(self.items))
         d["label"] = self.attr["name"] + str(len(self.items))
         d["type"] = typ
-        clas = getAttrByType(typ)
+        clas = get_attr_by_type(typ)
         if clas is None:
             return
         if "default" not in d:
-            default = getAttrDefault(typ)
+            default = get_attr_default(typ)
 
             if default is None:
                 return
@@ -2176,13 +2176,13 @@ class PinUnpin(QGraphicsPixmapItem):
         self.state = state
         if self.state:
             self.setPixmap(
-                self.options.getAwesomePixmap(
+                self.options.get_awesome_pixmap(
                     "fa6s.thumbtack", self.options.iconSize
                 )
             )
         else:
             self.setPixmap(
-                self.options.getAwesomePixmap(
+                self.options.get_awesome_pixmap(
                     "fa6s.thumbtack-slash", self.options.iconSize
                 )
             )
@@ -2191,10 +2191,10 @@ class PinUnpin(QGraphicsPixmapItem):
         if event is not None and (event.buttons() & Qt.MouseButton.LeftButton):
             self.setState(not self.state)
             p = self.parentItem()
-            if p is not None:
-                pp = p.parentItem()
-                if pp is not None:
-                    _attr_parent(pp).pinUnpin(_attr_parent(p).attr, self.state)
+            if p is not None and hasattr(p, "attr"):
+                node = getattr(p, "_node", None)
+                if node is not None and hasattr(node, "pinUnpin"):
+                    node.pinUnpin(p.attr, self.state)
 
 
 class ColorPicker(QGraphicsPixmapItem):
@@ -2384,7 +2384,7 @@ class NodeAttrRgb(NodeAttr):
         self.p3 = QPointF()
         self.p4 = QPointF()
         self.colorPicker = ColorPicker(
-            self.options.getAwesomePixmap(
+            self.options.get_awesome_pixmap(
                 "fa6s.eye-dropper", self.options.iconSize
             ),
             self,
@@ -2412,7 +2412,7 @@ class NodeAttrRgb(NodeAttr):
         self.opacityRect = QRectF()
         self.opacityPoint = QPointF()
         self.opacityPixmap = QBrush(
-            self.options.getIcon("resources/icons/transparent_small.png")
+            self.options.get_icon("resources/icons/transparent_small.png")
         )
 
         self.gradientP1 = QLinearGradient()
@@ -2691,18 +2691,9 @@ class NodeAttrRgb(NodeAttr):
         s.addEllipse(r1)
         self.circle = self.circle.subtracted(s)
         self.gradientHSV.setCenter(self.circleCenter)
-        # self.gradientC = QRadialGradient(self.circleCenter,self.circleRadius)
-        # self.gradientC.setColorAt(0,QColor(255,255,255,255))
-        # self.gradientC.setColorAt(1,QColor(255,255,255,0))
         super().resize(width, height)
 
     def paint(self, painter, option, widget=None):
-        # print self,'paint'
-        # global Z
-        # Z+=1
-        # if Z>1000:
-
-        #    sys.settrace(traceit)
         painter.setBrush(self.darkBrush)
         painter.setPen(self.pen)
         painter.drawRoundedRect(
@@ -2753,10 +2744,7 @@ class NodeAttrRgb(NodeAttr):
             painter.setPen(QPen(0))
             painter.setBrush(QBrush(self.gradientHSV))
             painter.drawPath(self.circle)
-            # painter.setBrush(QBrush(self.gradientC))
-            # painter.drawPath(self.circle)
 
-            # painter.drawImage(0,0, self.triangleImage)
             painter.setBrush(QBrush(self.gradientP1))
             painter.drawPath(self.triangle)
             painter.setBrush(QBrush(self.gradientP3))
@@ -2871,7 +2859,6 @@ class NodeAttrRgb(NodeAttr):
             a = Vector(self.p1.x(), self.p1.y(), 0.0)
             b = Vector(self.p2.x(), self.p2.y(), 0.0)
             c = Vector(self.p3.x(), self.p3.y(), 0.0)
-            # (u,v,w) = getBarycentric(p,self.p1,self.p2,self.p3)
             vec = getBarycentric(Vector(p.x(), p.y(), 0.0), a, b, c)
             u = vec[0]
             v = vec[1]
@@ -2911,11 +2898,8 @@ class NodeAttrRgb(NodeAttr):
             )
             self.updatePoint()
             self.update()
-        # NodeAttr.dragMoveEvent(self,event)
 
     def dropEvent(self, event):
         NodeAttr.dropEvent(self, event)
-        # if event.isAccepted():
-        #    return
         self.updateValue()
         self.updateAttribute()
