@@ -152,6 +152,7 @@ def getAttrDefault(typ):
 class ItemRgbAnimation(QPropertyAnimation):
     def __init__(self, *args):
         QPropertyAnimation.__init__(self, *args)
+        self._item = None
         self.rgb_pointsR = []
         self.rgb_bezierR = None
         self.rgb_pointsG = []
@@ -170,13 +171,16 @@ class ItemRgbAnimation(QPropertyAnimation):
         if len(self.rgb_pointsB) > 3:
             self.rgb_bezierB = bezier.Bspline(self.rgb_pointsB)
 
+    def setItem(self, item):
+        self._item = item
+
     def afterAnimationStep(self, step):
-        if self.rgb_bezierR:
+        item = self._item
+        if item is not None and self.rgb_bezierR:
             r = self.rgb_bezierR(step)[1]
             g = self.rgb_bezierG(step)[1]
             b = self.rgb_bezierB(step)[1]
-            self.item().setRgb(r, g, b)
-        QtWidgets.QGraphicsItemAnimation.afterAnimationStep(self, step)
+            item.setRgb(r, g, b)
 
 
 class StringTextItem(QtWidgets.QGraphicsTextItem):

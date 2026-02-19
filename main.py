@@ -430,7 +430,7 @@ class NodeDialog(QtWidgets.QWidget):
         self.viewport = View(self)
         self.viewport.setScene(self.scene)
         self.viewport.setViewportUpdateMode(
-            QtWidgets.QGraphicsView.BoundingRectViewportUpdate
+            QtWidgets.QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
         )  # BoundingRectViewportUpdate#FullViewportUpdate
         self.backImage = QImage("resources/icons/grid.png")
         # self.viewport.setCacheMode(QtWidgets.QGraphicsView.CacheBackground)
@@ -445,7 +445,7 @@ class NodeDialog(QtWidgets.QWidget):
         self.attrView.setMinimumWidth(200)
         # self.attrView.setCacheMode(QtWidgets.QGraphicsView.CacheBackground)
         self.attrView.setViewportUpdateMode(
-            QtWidgets.QGraphicsView.BoundingRectViewportUpdate
+            QtWidgets.QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
         )
         self.attrView.setRenderHints(QPainter.Antialiasing)
         self.attrView.setBackgroundBrush(QBrush(QColor(100, 100, 100)))
@@ -518,7 +518,7 @@ class NodeDialog(QtWidgets.QWidget):
         p = self.mapFromGlobal(p)
         p = self.viewport.mapToScene(p)
         if menuAction:
-            shader = self.shaders[str(menuAction.text())]
+            shader = self.shaders.get(str(menuAction.text()))
             d = {"name": str(menuAction.text())}
 
             d["type"] = "NodeShader"
@@ -602,12 +602,12 @@ class NodeDialog(QtWidgets.QWidget):
         self.keyMove(QPointF(5, 0))
 
     def trayIconClick(self, reason):
-        if reason == QtWidgets.QSystemTrayIcon.Trigger:
+        if reason == QtWidgets.QSystemTrayIcon.ActivationReason.Trigger:
             if self.isVisible():
                 self.hide()
             else:
                 self.show()
-        elif reason == QtWidgets.QSystemTrayIcon.Context:
+        elif reason == QtWidgets.QSystemTrayIcon.ActivationReason.Context:
             menu = QtWidgets.QMenu(self)
             exitAction = menu.addAction("Exit")
             action = menu.exec(QCursor.pos())
@@ -621,24 +621,24 @@ class NodeDialog(QtWidgets.QWidget):
     def showIcons(self, checked):
         if checked:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == NodeBookmark and n.icon is not None:
+                if isinstance(n, NodeBookmark) and n.iconItem is not None:
                     n.iconItem.setVisible(True)
                     n.setRect(n.rect)
         else:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == NodeBookmark and n.icon is not None:
+                if isinstance(n, NodeBookmark) and n.iconItem is not None:
                     n.iconItem.hide()
                     n.setRect(n.rect)
 
     def showNames(self, checked):
         if checked:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == NodeBookmark:
+                if isinstance(n, NodeBookmark) and n.nameItem is not None:
                     n.nameItem.setVisible(True)
                     n.setRect(n.rect)
         else:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == NodeBookmark:
+                if isinstance(n, NodeBookmark) and n.nameItem is not None:
                     n.nameItem.hide()
                     n.setRect(n.rect)
 
@@ -1263,11 +1263,10 @@ class View(QtWidgets.QGraphicsView):
                 if sel.__class__ == NodeGroup:
                     for x in sel.childs:
                         # x.prepareGeometryChange()
-                        x.setPos(
-                            self.mapToScene(event.pos())
-                            - self.origin
-                            + x.old_pos
-                        )
+                        pos = self.mapToScene(event.pos())
+                        pos = pos - self.origin
+                        pos = pos + x.old_pos
+                        x.setPos(pos.x(), pos.y())
                         # x.update()
                 if issubclass(sel.__class__, Node):
                     p = self.mapToScene(event.pos()) - self.origin + sel.old_pos

@@ -305,7 +305,9 @@ class NodeShader(Node):
         menu = QtWidgets.QMenu(
             parent=parent if isinstance(parent, QtWidgets.QWidget) else None
         )
-        shader = self.dialog.shaders[self.shader]
+        shader = self.dialog.shaders.get(self.shader)
+        if shader is None:
+            return
         types = ["RGB", "RGBA", "VECTOR", "POINT"]
         conns = [
             x["name"]
