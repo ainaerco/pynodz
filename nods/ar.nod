@@ -1,0 +1,1598 @@
+{
+    "connections": [
+        {
+            "attr": "", 
+            "parent": 0, 
+            "child": 3, 
+            "type": "Connection", 
+            "id": 0, 
+            "name": "Connection35"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 44, 
+            "type": "Connection", 
+            "id": 46, 
+            "name": "Connection0"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 39, 
+            "type": "Connection", 
+            "id": 47, 
+            "name": "Connection1"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 16, 
+            "type": "Connection", 
+            "id": 48, 
+            "name": "Connection2"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 23, 
+            "type": "Connection", 
+            "id": 49, 
+            "name": "Connection3"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 15, 
+            "type": "Connection", 
+            "id": 50, 
+            "name": "Connection4"
+        }, 
+        {
+            "attr": "", 
+            "parent": 10, 
+            "child": 40, 
+            "type": "Connection", 
+            "id": 51, 
+            "name": "Connection5"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 17, 
+            "type": "Connection", 
+            "id": 52, 
+            "name": "Connection6"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 20, 
+            "type": "Connection", 
+            "id": 53, 
+            "name": "Connection7"
+        }, 
+        {
+            "attr": "", 
+            "parent": 34, 
+            "child": 30, 
+            "type": "Connection", 
+            "id": 54, 
+            "name": "Connection8"
+        }, 
+        {
+            "attr": "", 
+            "parent": 10, 
+            "child": 5, 
+            "type": "Connection", 
+            "id": 55, 
+            "name": "Connection9"
+        }, 
+        {
+            "attr": "", 
+            "parent": 19, 
+            "child": 36, 
+            "type": "Connection", 
+            "id": 56, 
+            "name": "Connection10"
+        }, 
+        {
+            "attr": "", 
+            "parent": 21, 
+            "child": 4, 
+            "type": "Connection", 
+            "id": 57, 
+            "name": "Connection11"
+        }, 
+        {
+            "attr": "", 
+            "parent": 2, 
+            "child": 29, 
+            "type": "Connection", 
+            "id": 58, 
+            "name": "Connection12"
+        }, 
+        {
+            "attr": "", 
+            "parent": 2, 
+            "child": 27, 
+            "type": "Connection", 
+            "id": 59, 
+            "name": "Connection13"
+        }, 
+        {
+            "attr": "", 
+            "parent": 10, 
+            "child": 7, 
+            "type": "Connection", 
+            "id": 60, 
+            "name": "Connection14"
+        }, 
+        {
+            "attr": "", 
+            "parent": 10, 
+            "child": 33, 
+            "type": "Connection", 
+            "id": 61, 
+            "name": "Connection15"
+        }, 
+        {
+            "attr": "", 
+            "parent": 19, 
+            "child": 42, 
+            "type": "Connection", 
+            "id": 62, 
+            "name": "Connection16"
+        }, 
+        {
+            "attr": "", 
+            "parent": 19, 
+            "child": 38, 
+            "type": "Connection", 
+            "id": 63, 
+            "name": "Connection17"
+        }, 
+        {
+            "attr": "", 
+            "parent": 45, 
+            "child": 32, 
+            "type": "Connection", 
+            "id": 64, 
+            "name": "Connection18"
+        }, 
+        {
+            "attr": "", 
+            "parent": 10, 
+            "child": 24, 
+            "type": "Connection", 
+            "id": 65, 
+            "name": "Connection19"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 8, 
+            "type": "Connection", 
+            "id": 66, 
+            "name": "Connection20"
+        }, 
+        {
+            "attr": "", 
+            "parent": 2, 
+            "child": 18, 
+            "type": "Connection", 
+            "id": 67, 
+            "name": "Connection21"
+        }, 
+        {
+            "attr": "", 
+            "parent": 2, 
+            "child": 41, 
+            "type": "Connection", 
+            "id": 68, 
+            "name": "Connection22"
+        }, 
+        {
+            "attr": "", 
+            "parent": 34, 
+            "child": 22, 
+            "type": "Connection", 
+            "id": 69, 
+            "name": "Connection23"
+        }, 
+        {
+            "attr": "", 
+            "parent": 45, 
+            "child": 31, 
+            "type": "Connection", 
+            "id": 71, 
+            "name": "Connection24"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 12, 
+            "type": "Connection", 
+            "id": 72, 
+            "name": "Connection25"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 11, 
+            "type": "Connection", 
+            "id": 73, 
+            "name": "Connection26"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 35, 
+            "type": "Connection", 
+            "id": 74, 
+            "name": "Connection27"
+        }, 
+        {
+            "attr": "", 
+            "parent": 34, 
+            "child": 13, 
+            "type": "Connection", 
+            "id": 75, 
+            "name": "Connection28"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 9, 
+            "type": "Connection", 
+            "id": 76, 
+            "name": "Connection29"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 14, 
+            "type": "Connection", 
+            "id": 77, 
+            "name": "Connection30"
+        }, 
+        {
+            "attr": "", 
+            "parent": 45, 
+            "child": 43, 
+            "type": "Connection", 
+            "id": 78, 
+            "name": "Connection31"
+        }, 
+        {
+            "attr": "", 
+            "parent": 10, 
+            "child": 37, 
+            "type": "Connection", 
+            "id": 79, 
+            "name": "Connection32"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 25, 
+            "type": "Connection", 
+            "id": 80, 
+            "name": "Connection33"
+        }, 
+        {
+            "attr": "", 
+            "parent": 28, 
+            "child": 26, 
+            "type": "Connection", 
+            "id": 81, 
+            "name": "Connection34"
+        }
+    ], 
+    "nodes": {
+        "mayaFluid0": {
+            "name": "mayaFluid0", 
+            "collapsed": false, 
+            "shader": "mayaFluid", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {}, 
+            "posx": -195.97, 
+            "posy": 417.88, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 36
+        }, 
+        "anim_matrix0": {
+            "name": "anim_matrix0", 
+            "collapsed": false, 
+            "shader": "anim_matrix", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "values": null
+            }, 
+            "posx": -192.91, 
+            "posy": 982.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 15
+        }, 
+        "Note1": {
+            "name": "Note1", 
+            "collapsed": false, 
+            "height": 152.0, 
+            "width": 166.0, 
+            "rgb": "#fafafa", 
+            "html": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">weferfer</p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>", 
+            "posx": 1313.86, 
+            "posy": 395.46, 
+            "keywords": "", 
+            "type": "NodeNote", 
+            "id": 3
+        }, 
+        "Note0": {
+            "name": "Note0", 
+            "collapsed": false, 
+            "height": 297.0, 
+            "width": 190.0, 
+            "rgb": "#fafafa", 
+            "html": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n<ul style=\"margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;\"><li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Nice buttons</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Attr dropdowns</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Color Ramp</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">AttrSpline fit</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Image loading</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Connections</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Multiple shader editing</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Attribute input</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Node scene</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Ass read</li>\n<li style=\" font-size:8pt;\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Ass write</li></ul></body></html>", 
+            "posx": 696.22, 
+            "posy": -31.27, 
+            "keywords": "", 
+            "type": "NodeNote", 
+            "id": 6
+        }, 
+        "MayaRemapColor0": {
+            "name": "MayaRemapColor0", 
+            "collapsed": false, 
+            "shader": "MayaRemapColor", 
+            "height": 54.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "inputMin": 0, 
+                "rInterpolations": null, 
+                "outputMax": 1, 
+                "bValues": null, 
+                "name": "", 
+                "gInterpolations": null, 
+                "rPositions": null, 
+                "outputMin": 0, 
+                "rValues": null, 
+                "inputMax": 1, 
+                "bInterpolations": null, 
+                "gPositions": null, 
+                "gValues": null, 
+                "bPositions": null, 
+                "input": [
+                    0, 
+                    0, 
+                    0
+                ]
+            }, 
+            "posx": 205.76, 
+            "posy": 329.26, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 43
+        }, 
+        "MayaShadingEngine0": {
+            "name": "MayaShadingEngine0", 
+            "collapsed": false, 
+            "shader": "MayaShadingEngine", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "matte_color": [
+                    0, 
+                    0, 
+                    0, 
+                    0
+                ], 
+                "volume": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "aov_inputs": [], 
+                "name": "", 
+                "beauty": [
+                    0, 
+                    0, 
+                    0, 
+                    0
+                ], 
+                "aov_names": null, 
+                "enable_matte": false
+            }, 
+            "posx": 497.87, 
+            "posy": 106.97, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 40
+        }, 
+        "Byte0": {
+            "name": "Byte0", 
+            "collapsed": false, 
+            "height": 27.0, 
+            "width": 99.0, 
+            "rgb": "#9867fa", 
+            "posx": -412.53, 
+            "posy": 280.57, 
+            "keywords": "", 
+            "type": "Node", 
+            "id": 21
+        }, 
+        "MayaQuadShadingSwitch0": {
+            "name": "MayaQuadShadingSwitch0", 
+            "collapsed": false, 
+            "shader": "MayaQuadShadingSwitch", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "default": [
+                    0.8, 
+                    0.8, 
+                    0.8, 
+                    1
+                ], 
+                "inputs": [], 
+                "shapes": [], 
+                "name": ""
+            }, 
+            "posx": 497.87, 
+            "posy": 77.97, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 37
+        }, 
+        "MayaProjection0": {
+            "name": "MayaProjection0", 
+            "collapsed": false, 
+            "shader": "MayaProjection", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "placementMatrix": [
+                    [
+                        1, 
+                        0, 
+                        0, 
+                        0
+                    ], 
+                    [
+                        0, 
+                        1, 
+                        0, 
+                        0
+                    ], 
+                    [
+                        0, 
+                        0, 
+                        1, 
+                        0
+                    ], 
+                    [
+                        0, 
+                        0, 
+                        0, 
+                        1
+                    ]
+                ], 
+                "linkedCamera": null, 
+                "alphaGain": 1, 
+                "image": [
+                    0, 
+                    0, 
+                    0, 
+                    1
+                ], 
+                "vAngle": 90, 
+                "cameraNearPlane": 1, 
+                "wrap": true, 
+                "colorGain": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "fitType": "none", 
+                "alphaOffset": 0, 
+                "fitFill": "fill", 
+                "name": "", 
+                "cameraHorizontalFOV": 0.977384, 
+                "invert": false, 
+                "defaultColor": [
+                    0.5, 
+                    0.5, 
+                    0.5
+                ], 
+                "colorOffset": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "projType": "off", 
+                "uAngle": 180, 
+                "cameraAspectRatio": 1, 
+                "local": false
+            }, 
+            "posx": 497.87, 
+            "posy": 48.97, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 24
+        }, 
+        "anim_vector0": {
+            "name": "anim_vector0", 
+            "collapsed": false, 
+            "shader": "anim_vector", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "values": null
+            }, 
+            "posx": -192.91, 
+            "posy": 854.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 44
+        }, 
+        "MayaFluidData0": {
+            "name": "MayaFluidData0", 
+            "collapsed": false, 
+            "shader": "MayaFluidData", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {}, 
+            "posx": -188.6, 
+            "posy": 325.97, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 38
+        }, 
+        "MayaSolidFractal0": {
+            "name": "MayaSolidFractal0", 
+            "collapsed": false, 
+            "shader": "MayaSolidFractal", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {}, 
+            "posx": -212.18, 
+            "posy": 611.65, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 41
+        }, 
+        "MayaImagePlane0": {
+            "name": "MayaImagePlane0", 
+            "collapsed": false, 
+            "shader": "MayaImagePlane", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "alphaGain": 1, 
+                "name": "", 
+                "color": [
+                    1, 
+                    0, 
+                    0
+                ], 
+                "displayMode": "rgba", 
+                "filename": "", 
+                "camera": null, 
+                "coverage": [
+                    1, 
+                    1
+                ], 
+                "colorGain": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "translate": [
+                    0, 
+                    0
+                ], 
+                "colorOffset": [
+                    0, 
+                    0, 
+                    0
+                ]
+            }, 
+            "posx": 497.87, 
+            "posy": -9.03, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 7
+        }, 
+        "aovWritePoint0": {
+            "name": "aovWritePoint0", 
+            "collapsed": false, 
+            "shader": "aovWritePoint", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "aov_name": "", 
+                "input": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "name": "", 
+                "sets": null
+            }, 
+            "posx": -192.91, 
+            "posy": 598.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 8
+        }, 
+        "MayaBrownian0": {
+            "name": "MayaBrownian0", 
+            "collapsed": false, 
+            "shader": "MayaBrownian", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {}, 
+            "posx": -215.16, 
+            "posy": 535.72, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 27
+        }, 
+        "Nodes0": {
+            "name": "Nodes0", 
+            "collapsed": false, 
+            "height": 27.0, 
+            "width": 95.0, 
+            "rgb": "#6c67fa", 
+            "posx": 203.4, 
+            "posy": 66.1, 
+            "keywords": "", 
+            "type": "Node", 
+            "id": 10
+        }, 
+        "alSurface0": {
+            "name": "alSurface0", 
+            "collapsed": false, 
+            "shader": "alSurface", 
+            "height": 108.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "traceSetAll": "", 
+                "specular2Color": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "emissionStrength": 0, 
+                "specular1Roughness": 0.3, 
+                "aov_depth": "depth", 
+                "specular1Reflectivity": [
+                    0.548, 
+                    0.549, 
+                    0.57
+                ], 
+                "aiEnableMatte": false, 
+                "ssAttenuationColor": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "transmissionColor": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "specular2FresnelMode": "dielectric", 
+                "transmissionRoughnessDepthScale": 1, 
+                "aov_light_group_8": "light_group_8", 
+                "aov_light_group_3": "light_group_3", 
+                "aov_light_group_2": "light_group_2", 
+                "aov_light_group_1": "light_group_1", 
+                "aov_light_group_7": "light_group_7", 
+                "aov_light_group_6": "light_group_6", 
+                "aov_light_group_5": "light_group_5", 
+                "aov_light_group_4": "light_group_4", 
+                "specular1IndirectClamp": 0, 
+                "aov_uv": "uv", 
+                "transmissionExtraSamples": 0, 
+                "transmissionRoughness": 0, 
+                "specular2Ior": 1.4, 
+                "aov_single_scatter": "single_scatter", 
+                "specular2Strength": 0, 
+                "sssWeight1": 1, 
+                "sssWeight3": 0, 
+                "sssWeight2": 0, 
+                "transmissionIor": 1.4, 
+                "sssRadius": 1.5, 
+                "specular2Reflectivity": [
+                    0.548, 
+                    0.549, 
+                    0.57
+                ], 
+                "standardCompatibleAOVs": false, 
+                "aov_indirect_diffuse_raw": "indirect_diffuse_raw", 
+                "specular1IndirectStrength": 1, 
+                "aov_direct_specular": "direct_specular", 
+                "specular1ExtraSamples": 0, 
+                "specular1RoughnessDepthScale": 1, 
+                "aov_id_5": "id_5", 
+                "id8": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "id6": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "id7": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "id4": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "id5": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "id2": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "id3": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "id1": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "transmissionDoDirect": false, 
+                "aov_id_3": "id_3", 
+                "aov_id_2": "id_2", 
+                "aov_id_1": "id_1", 
+                "aov_id_7": "id_7", 
+                "aov_id_6": "id_6", 
+                "aiMatteColor": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "aov_id_4": "id_4", 
+                "aov_id_8": "id_8", 
+                "diffuseRoughness": 0, 
+                "diffuseExtraSamples": 0, 
+                "specular2IndirectClamp": 0, 
+                "transmissionEnableCaustics": true, 
+                "specular1EdgeTint": [
+                    0.579, 
+                    0.598, 
+                    0.62
+                ], 
+                "backlightColor": [
+                    0.18, 
+                    0.18, 
+                    0.18
+                ], 
+                "specular2Anisotropy": 0.5, 
+                "aov_indirect_specular_2": "indirect_specular_2", 
+                "aov_refraction": "refraction", 
+                "ssAbsorption": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "specular1Strength": 1, 
+                "sssRadius3": 0.75, 
+                "sssRadius2": 4, 
+                "traceSetBacklight": "", 
+                "specular1Rotation": 0, 
+                "sssRadiusColor": [
+                    0.439, 
+                    0.156, 
+                    0.078
+                ], 
+                "specular2Roughness": 0.3, 
+                "sssDensityScale": 1, 
+                "specular1Normal": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "sssMix": 0, 
+                "specular2Normal": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "aov_diffuse_color": "diffuse_color", 
+                "traceSetShadows": "", 
+                "sssRadiusColor3": [
+                    0.523, 
+                    0.637, 
+                    0.667
+                ], 
+                "sssRadiusColor2": [
+                    0.439, 
+                    0.08, 
+                    0.018
+                ], 
+                "ssInScatteringStrength": 0, 
+                "transmissionLinkToSpecular1": true, 
+                "diffuseIndirectStrength": 1, 
+                "rrTransmission": false, 
+                "traceSetTransmission": "", 
+                "emissionColor": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "aov_direct_specular_2": "direct_specular_2", 
+                "aiMatteColorA": 0, 
+                "transmissionStrength": 0, 
+                "aov_shadow_group_2": "shadow_group_2", 
+                "aov_shadow_group_3": "shadow_group_3", 
+                "aov_shadow_group_1": "shadow_group_1", 
+                "aov_shadow_group_6": "shadow_group_6", 
+                "aov_shadow_group_7": "shadow_group_7", 
+                "aov_shadow_group_4": "shadow_group_4", 
+                "aov_shadow_group_5": "shadow_group_5", 
+                "ssSpecifyCoefficients": false, 
+                "aov_shadow_group_8": "shadow_group_8", 
+                "specular2IndirectStrength": 1, 
+                "specular1FresnelMode": "dielectric", 
+                "aov_indirect_backlight": "indirect_backlight", 
+                "aov_indirect_specular": "indirect_specular", 
+                "specular2ExtraSamples": 0, 
+                "specular1Ior": 1.4, 
+                "traceSetDiffuse": "", 
+                "ssDensityScale": 1, 
+                "aov_sss": "sss", 
+                "specular2RoughnessDepthScale": 1, 
+                "backlightIndirectStrength": 1, 
+                "opacity": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "specular2EdgeTint": [
+                    0.579, 
+                    0.598, 
+                    0.62
+                ], 
+                "aov_direct_diffuse": "direct_diffuse", 
+                "aov_emission": "emission", 
+                "ssScattering": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "diffuseStrength": 1, 
+                "specular1Anisotropy": 0.5, 
+                "rrTransmissionDepth": 1, 
+                "diffuseEnableCaustics": false, 
+                "transmitAovs": false, 
+                "transmissionClamp": 0, 
+                "backlightStrength": 0, 
+                "specular1Color": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "aov_direct_diffuse_raw": "direct_diffuse_raw", 
+                "rr": true, 
+                "diffuseColor": [
+                    0.5, 
+                    0.5, 
+                    0.5
+                ], 
+                "ssDirection": 0, 
+                "aov_direct_backlight": "direct_backlight", 
+                "aov_indirect_diffuse": "indirect_diffuse", 
+                "traceSetSpecular2": "", 
+                "traceSetSpecular1": "", 
+                "specular2Rotation": 0
+            }, 
+            "posx": 512.88, 
+            "posy": 380.25, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 30
+        }, 
+        "MayaRemapHsv0": {
+            "name": "MayaRemapHsv0", 
+            "collapsed": false, 
+            "shader": "MayaRemapHsv", 
+            "height": 27.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "inputMin": 0, 
+                "hInterpolations": null, 
+                "hPositions": null, 
+                "name": "", 
+                "sPositions": null, 
+                "vInterpolations": null, 
+                "outputMin": 0, 
+                "hValues": null, 
+                "inputMax": 1, 
+                "vValues": null, 
+                "sValues": null, 
+                "vPositions": null, 
+                "sInterpolations": null, 
+                "outputMax": 1, 
+                "input": [
+                    0, 
+                    0, 
+                    0
+                ]
+            }, 
+            "posx": 205.66, 
+            "posy": 483.94, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 31
+        }, 
+        "gobo0": {
+            "name": "gobo0", 
+            "collapsed": false, 
+            "shader": "gobo", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "rotate": 0, 
+                "wrap_t": "clamp", 
+                "density": 0, 
+                "scale_s": 1, 
+                "wrap_s": "clamp", 
+                "offset": [
+                    0, 
+                    0
+                ], 
+                "slidemap": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "scale_t": 1, 
+                "filter_mode": "blend"
+            }, 
+            "posx": -192.91, 
+            "posy": 886.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 39
+        }, 
+        "MayaDoubleShadingSwitch0": {
+            "name": "MayaDoubleShadingSwitch0", 
+            "collapsed": false, 
+            "shader": "MayaDoubleShadingSwitch", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "default": [
+                    0.8, 
+                    0.8
+                ], 
+                "inputs": [], 
+                "shapes": [], 
+                "name": ""
+            }, 
+            "posx": 497.87, 
+            "posy": 19.97, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 33
+        }, 
+        "anim_point0": {
+            "name": "anim_point0", 
+            "collapsed": false, 
+            "shader": "anim_point", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "values": null
+            }, 
+            "posx": -192.91, 
+            "posy": 822.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 23
+        }, 
+        "MayaPlusMinusAverage1D0": {
+            "name": "MayaPlusMinusAverage1D0", 
+            "collapsed": false, 
+            "shader": "MayaPlusMinusAverage1D", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "operation": "sum", 
+                "input1D": null, 
+                "name": ""
+            }, 
+            "posx": -192.91, 
+            "posy": 630.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 35
+        }, 
+        "anim_float0": {
+            "name": "anim_float0", 
+            "collapsed": false, 
+            "shader": "anim_float", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "values": []
+            }, 
+            "posx": -192.91, 
+            "posy": 790.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 16
+        }, 
+        "MayaRamp0": {
+            "name": "MayaRamp0", 
+            "collapsed": false, 
+            "shader": "MayaRamp", 
+            "height": 27.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "noise": 0, 
+                "vWave": 0, 
+                "color": null, 
+                "uWave": 0, 
+                "valNoise": 0, 
+                "hueNoiseFreq": 0.5, 
+                "noiseFreq": 0.5, 
+                "colorGain": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "alphaGain": 1, 
+                "alphaOffset": 0, 
+                "satNoiseFreq": 0.5, 
+                "name": "", 
+                "alphaIsLuminance": false, 
+                "hueNoise": 0, 
+                "invert": false, 
+                "defaultColor": [
+                    0.5, 
+                    0.5, 
+                    0.5
+                ], 
+                "colorOffset": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "valNoiseFreq": 0.5, 
+                "uvCoord": [
+                    0, 
+                    0
+                ], 
+                "position": null, 
+                "type": "v", 
+                "satNoise": 0, 
+                "interpolation": "linear"
+            }, 
+            "posx": 470.55, 
+            "posy": 742.55, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 13
+        }, 
+        "MayaRemapValueToValue0": {
+            "name": "MayaRemapValueToValue0", 
+            "collapsed": false, 
+            "shader": "MayaRemapValueToValue", 
+            "height": 81.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "inputMin": 0.0, 
+                "outputMax": 1, 
+                "name": "", 
+                "positions": null, 
+                "interpolations": null, 
+                "outputMin": 0, 
+                "inputMax": 1, 
+                "values": null, 
+                "input": 0
+            }, 
+            "posx": 205.34, 
+            "posy": 526.56, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 32
+        }, 
+        "MayaHair0": {
+            "name": "MayaHair0", 
+            "collapsed": false, 
+            "shader": "MayaHair", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "opacity": 1, 
+                "satRand": 0, 
+                "valRand": 0, 
+                "hueRand": 0, 
+                "specularRand": 0.4, 
+                "specularPower": 3, 
+                "translucence": 0.5, 
+                "specularColor": [
+                    0.35, 
+                    0.35, 
+                    0.299995
+                ], 
+                "hairColorScale": [], 
+                "hairColor": [
+                    0.4, 
+                    0.4, 
+                    0.4
+                ], 
+                "castShadows": true, 
+                "diffuseRand": 0.2
+            }, 
+            "posx": -192.91, 
+            "posy": 918.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 17
+        }, 
+        "aovWriteFloat0": {
+            "name": "aovWriteFloat0", 
+            "collapsed": false, 
+            "shader": "aovWriteFloat", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "aov_name": "", 
+                "input": 0, 
+                "name": "", 
+                "sets": null
+            }, 
+            "posx": -192.91, 
+            "posy": 662.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 11
+        }, 
+        "anim_color0": {
+            "name": "anim_color0", 
+            "collapsed": false, 
+            "shader": "anim_color", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "values": []
+            }, 
+            "posx": -192.91, 
+            "posy": 950.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 20
+        }, 
+        "MayaVolumeNoise0": {
+            "name": "MayaVolumeNoise0", 
+            "collapsed": false, 
+            "shader": "MayaVolumeNoise", 
+            "height": 27.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "placementMatrix": [
+                    [
+                        1, 
+                        0, 
+                        0, 
+                        0
+                    ], 
+                    [
+                        0, 
+                        1, 
+                        0, 
+                        0
+                    ], 
+                    [
+                        0, 
+                        0, 
+                        1, 
+                        0
+                    ], 
+                    [
+                        0, 
+                        0, 
+                        0, 
+                        1
+                    ]
+                ]
+            }, 
+            "posx": -210.36, 
+            "posy": 498.3, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 18
+        }, 
+        "aovWritePoint1": {
+            "name": "aovWritePoint1", 
+            "collapsed": false, 
+            "shader": "aovWritePoint2", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "aov_name": "", 
+                "input": [
+                    0, 
+                    0
+                ], 
+                "name": "", 
+                "sets": null
+            }, 
+            "posx": -192.91, 
+            "posy": 566.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 14
+        }, 
+        "Fluid0": {
+            "name": "Fluid0", 
+            "collapsed": true, 
+            "height": 27.0, 
+            "width": 97.0, 
+            "rgb": "#67bbfa", 
+            "posx": -408.86, 
+            "posy": 354.77, 
+            "keywords": "", 
+            "type": "Node", 
+            "id": 19
+        }, 
+        "MayaFluidTexture2D0": {
+            "name": "MayaFluidTexture2D0", 
+            "collapsed": false, 
+            "shader": "MayaFluidTexture2D", 
+            "height": 108.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "edge_dropoff": 0.05, 
+                "color_gradient_type": "C", 
+                "color_gradient_values": []
+            }, 
+            "posx": -180.09, 
+            "posy": 366.81, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 42
+        }, 
+        "MayaPlusMinusAverage3D0": {
+            "name": "MayaPlusMinusAverage3D0", 
+            "collapsed": false, 
+            "shader": "MayaPlusMinusAverage3D", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "operation": "sum", 
+                "name": "", 
+                "input3D": null
+            }, 
+            "posx": -192.91, 
+            "posy": 758.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 25
+        }, 
+        "image1": {
+            "name": "image1", 
+            "collapsed": false, 
+            "shader": "image", 
+            "height": 231.0, 
+            "width": 276.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "uvset": "", 
+                "sscale": 1, 
+                "uvcoords": [
+                    0, 
+                    0
+                ], 
+                "offset": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "multiply": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "twrap": "periodic", 
+                "tscale": 1, 
+                "swrap": "periodic", 
+                "filename": "E:/Photos/2015/DSC00099.jpg", 
+                "filter": "smart_bicubic", 
+                "cache_texture_handles": true, 
+                "single_channel": false, 
+                "swap_st": false, 
+                "mipmap_bias": 0, 
+                "tflip": false, 
+                "sflip": false, 
+                "start_channel": 0
+            }, 
+            "posx": 903.53, 
+            "posy": 397.12, 
+            "keywords": [], 
+            "type": "NodeShader", 
+            "id": 0
+        }, 
+        "image0": {
+            "name": "image0", 
+            "collapsed": false, 
+            "shader": "image", 
+            "height": 231.0, 
+            "width": 276.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "uvset": "", 
+                "sscale": 1, 
+                "uvcoords": [
+                    0, 
+                    0
+                ], 
+                "offset": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "multiply": [
+                    1, 
+                    1, 
+                    1
+                ], 
+                "start_channel": 0, 
+                "tscale": 1, 
+                "swrap": "periodic", 
+                "filename": "", 
+                "filter": "smart_bicubic", 
+                "twrap": "periodic", 
+                "cache_texture_handles": true, 
+                "swap_st": false, 
+                "mipmap_bias": 0, 
+                "tflip": false, 
+                "sflip": false, 
+                "single_channel": false
+            }, 
+            "posx": -243.9, 
+            "posy": 173.18, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 4
+        }, 
+        "Arrays0": {
+            "name": "Arrays0", 
+            "collapsed": true, 
+            "height": 25.0, 
+            "width": 115.0, 
+            "rgb": "#fafafa", 
+            "posx": -430.91, 
+            "posy": 509.84, 
+            "keywords": "", 
+            "type": "Node", 
+            "id": 28
+        }, 
+        "MayaPlusMinusAverage2D0": {
+            "name": "MayaPlusMinusAverage2D0", 
+            "collapsed": false, 
+            "shader": "MayaPlusMinusAverage2D", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "input2D": null, 
+                "operation": "sum", 
+                "name": ""
+            }, 
+            "posx": -192.91, 
+            "posy": 694.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 12
+        }, 
+        "MayaSingleShadingSwitch0": {
+            "name": "MayaSingleShadingSwitch0", 
+            "collapsed": false, 
+            "shader": "MayaSingleShadingSwitch", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "default": 1, 
+                "inputs": [], 
+                "shapes": [], 
+                "name": ""
+            }, 
+            "posx": 497.87, 
+            "posy": 135.97, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 5
+        }, 
+        "Spline editor0": {
+            "name": "Spline editor0", 
+            "collapsed": true, 
+            "height": 24.0, 
+            "width": 134.0, 
+            "rgb": "#f6fa67", 
+            "posx": -107.09, 
+            "posy": 467.46, 
+            "keywords": "", 
+            "type": "Node", 
+            "id": 45
+        }, 
+        "MayaCloud0": {
+            "name": "MayaCloud0", 
+            "collapsed": false, 
+            "shader": "MayaCloud", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {}, 
+            "posx": -216.31, 
+            "posy": 575.99, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 29
+        }, 
+        "aovWriteVector0": {
+            "name": "aovWriteVector0", 
+            "collapsed": false, 
+            "shader": "aovWriteVector", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "aov_name": "", 
+                "input": [
+                    0, 
+                    0, 
+                    0
+                ], 
+                "name": "", 
+                "sets": null
+            }, 
+            "posx": -192.91, 
+            "posy": 534.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 9
+        }, 
+        "Group0": {
+            "name": "Group0", 
+            "collapsed": false, 
+            "height": 313.0, 
+            "width": 665.0, 
+            "rgb": "#fafafa", 
+            "posx": 178.5, 
+            "posy": 321.95, 
+            "keywords": "", 
+            "type": "NodeGroup", 
+            "id": 1
+        }, 
+        "MayaRemapValueToColor0": {
+            "name": "MayaRemapValueToColor0", 
+            "collapsed": false, 
+            "shader": "MayaRemapValueToColor", 
+            "height": 27.0, 
+            "width": 230.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "inputMin": 0, 
+                "outputMax": 1, 
+                "name": "", 
+                "positions": null, 
+                "interpolations": null, 
+                "outputMin": 0, 
+                "inputMax": 1, 
+                "values": null, 
+                "input": 0
+            }, 
+            "posx": 510.36, 
+            "posy": 538.72, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 22
+        }, 
+        "aovWriteColor0": {
+            "name": "aovWriteColor0", 
+            "collapsed": false, 
+            "shader": "aovWriteColor", 
+            "height": 27.0, 
+            "width": 90.0, 
+            "rgb": "#fafafa", 
+            "values": {
+                "aov_name": "", 
+                "input": [
+                    0, 
+                    0, 
+                    0, 
+                    1
+                ], 
+                "name": "", 
+                "sets": null
+            }, 
+            "posx": -192.91, 
+            "posy": 726.34, 
+            "keywords": "", 
+            "type": "NodeShader", 
+            "id": 26
+        }, 
+        "RGB Ramp0": {
+            "name": "RGB Ramp0", 
+            "collapsed": false, 
+            "height": 25.0, 
+            "width": 126.0, 
+            "rgb": "#fa6767", 
+            "posx": 145.64, 
+            "posy": 756.99, 
+            "keywords": "", 
+            "type": "Node", 
+            "id": 34
+        }, 
+        "Matrix0": {
+            "name": "Matrix0", 
+            "collapsed": true, 
+            "height": 24.0, 
+            "width": 101.0, 
+            "rgb": "#71fa67", 
+            "posx": -412.87, 
+            "posy": 427.92, 
+            "keywords": "", 
+            "type": "Node", 
+            "id": 2
+        }
+    }, 
+    "viewport": {
+        "width": 976.69, 
+        "top": 136.3538839585753, 
+        "height": 804.0126979166666, 
+        "scaleFactor": 1.09942283306084, 
+        "left": 799.4443472029257
+    }
+}

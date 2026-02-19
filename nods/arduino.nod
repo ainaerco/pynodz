@@ -1,0 +1,70 @@
+{
+    "nodes": {
+        "Bi-Directional Logic Level Converter Hookup Guide - learn.sparkfun.com0": {
+            "name": "Bi-Directional Logic Level Converter Hookup Guide - learn.sparkfun.com0",
+            "id": 0,
+            "display_name": "Bi-Directional Logic Level Converter Hookup Guide - learn.sparkfun.com",
+            "collapsed": false,
+            "keywords": "",
+            "posx": -221.0,
+            "posy": 369.0,
+            "width": 667.0,
+            "height": 40.0,
+            "rgb": "#fafafa",
+            "type": "NodeBookmark",
+            "url": "https://learn.sparkfun.com/tutorials/bi-directional-logic-level-converter-hookup-guide?_ga=2.255246220.505264550.1603444728-1421795976.1601323292"
+        },
+        "Lesson 30 I2C LCD0": {
+            "name": "Lesson 30 I2C LCD0",
+            "id": 1,
+            "display_name": "Lesson 30 I2C LCD",
+            "collapsed": false,
+            "keywords": "",
+            "posx": -220.0,
+            "posy": 293.0,
+            "width": 623.0,
+            "height": 41.0,
+            "rgb": "#fafafa",
+            "type": "NodeBookmark",
+            "icon": "downloads/sunfounder__LOGO_1-1.png",
+            "url": "https://www.sunfounder.com/learn/sensor-kit-v2-0-for-raspberry-pi-b-plus/lesson-30-i2c-lcd1602-sensor-kit-v2-0-for-b-plus.html"
+        },
+        "Arduino RGB LED Tutorial - Arduino Project Hub0": {
+            "name": "Arduino RGB LED Tutorial - Arduino Project Hub0",
+            "id": 2,
+            "display_name": "Arduino RGB LED Tutorial - Arduino Project Hub",
+            "collapsed": false,
+            "keywords": "blinky lights\nled\nlights\nrgb",
+            "posx": -157.0,
+            "posy": 447.0,
+            "width": 440.0,
+            "height": 49.0,
+            "rgb": "#fafafa",
+            "type": "NodeBookmark",
+            "icon": "downloads/create_arduino_FaviconB.ico",
+            "url": "https://create.arduino.cc/projecthub/muhammad-aqib/arduino-rgb-led-tutorial-fc003e"
+        },
+        "BookmarkNode0": {
+            "name": "BookmarkNode0",
+            "id": 3,
+            "display_name": "5 Most Common Arduino Nano Clone Problems",
+            "collapsed": false,
+            "keywords": "",
+            "posx": -91.0,
+            "posy": 524.0,
+            "width": 404.0,
+            "height": 42.0,
+            "rgb": "#fafafa",
+            "type": "NodeBookmark",
+            "url": "https://www.instructables.com/5-Most-Common-Arduino-Nano-Clone-Problems-and-Thei/"
+        }
+    },
+    "viewport": {
+        "left": -168.47753085822993,
+        "top": 189.36812593954852,
+        "width": 500.0,
+        "height": 500.0,
+        "scaleFactor": 1.0000000000000002
+    },
+    "connections": []
+}
