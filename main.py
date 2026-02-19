@@ -12,7 +12,8 @@ from typing import Any, cast
 
 from operator import methodcaller
 from qtpy.QtGui import (
-    QIcon,
+    QAction,
+    QShortcut,
     QImage,
     QPainter,
     QBrush,
@@ -38,7 +39,37 @@ from qtpy.QtCore import (
     QRect,
     QMimeData,
 )
-from qtpy import QtWidgets
+from qtpy.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QCheckBox,
+    QDialog,
+    QFileDialog,
+    QFileIconProvider,
+    QGraphicsItem,
+    QGraphicsPixmapItem,
+    QGraphicsRectItem,
+    QGraphicsScene,
+    QGraphicsView,
+    QGroupBox,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMenu,
+    QMenuBar,
+    QMessageBox,
+    QPushButton,
+    QRubberBand,
+    QSlider,
+    QSplitter,
+    QSystemTrayIcon,
+    QTableWidget,
+    QVBoxLayout,
+    QWidget,
+    QTableWidgetItem,
+    QTableWidget,
+)
 
 import nodeUtils
 from nodeUtils import NodeMimeData, mergeDicts
@@ -66,6 +97,9 @@ except ImportError:
 
     def getArnoldShaders():
         return {}
+
+
+from demoShaders import getDemoShaders
 
 
 try:
@@ -159,9 +193,9 @@ def download_icon(soup, url):
     return None
 
 
-class FilteredMenu(QtWidgets.QMenu):
+class FilteredMenu(QMenu):
     def __init__(self, parent):
-        QtWidgets.QMenu.__init__(self, parent)
+        super().__init__(parent)
         self.filterString = ""
 
     def keyPressEvent(self, event):  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -169,39 +203,39 @@ class FilteredMenu(QtWidgets.QMenu):
             return
         if event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
             event.accept()
-            QtWidgets.QMenu.keyPressEvent(self, event)
+            super().keyPressEvent(event)
             return
         self.filterString += event.text()
         actions_old = self.actions()
         actions = []
         for a in actions_old:
             if self.filterString in str(a.text()).lower():
-                actions += [QtWidgets.QAction(a.text(), self)]
+                actions += [QAction(a.text(), self)]
         self.clear()
         self.addSeparator()
         self.addActions(actions)
         self.move(QCursor.pos())
-        QtWidgets.QMenu.keyPressEvent(self, event)
+        super().keyPressEvent(event)
 
 
-class OptionsDialog(QtWidgets.QDialog):
+class OptionsDialog(QDialog):
     def __init__(self, parent):
-        QtWidgets.QDialog.__init__(self, parent)
+        super().__init__(parent)
         self.setWindowTitle("Options")
-        layout = QtWidgets.QVBoxLayout(self)
-        self.useProxy = QtWidgets.QCheckBox("Use proxy")
+        layout = QVBoxLayout(self)
+        self.useProxy = QCheckBox("Use proxy")
         self.useProxy.stateChanged.connect(self.useProxyCheck)
-        self.proxyName = QtWidgets.QLineEdit()
-        self.proxyPort = QtWidgets.QLineEdit()
-        self.pnLabel = QtWidgets.QLabel("HTTP Proxy:")
-        self.ppLabel = QtWidgets.QLabel("Port:")
-        label1 = QtWidgets.QLabel("Node radius:")
-        self.nodeRadius = QtWidgets.QSlider(Qt.Orientation.Horizontal)
+        self.proxyName = QLineEdit()
+        self.proxyPort = QLineEdit()
+        self.pnLabel = QLabel("HTTP Proxy:")
+        self.ppLabel = QLabel("Port:")
+        label1 = QLabel("Node radius:")
+        self.nodeRadius = QSlider(Qt.Orientation.Horizontal)
         self.nodeRadius.setMaximum(20)
-        label2 = QtWidgets.QLabel("Background brightness:")
-        self.backBrightness = QtWidgets.QSlider(Qt.Orientation.Horizontal)
+        label2 = QLabel("Background brightness:")
+        self.backBrightness = QSlider(Qt.Orientation.Horizontal)
         self.backBrightness.setValue(50)
-        self.outline = QtWidgets.QCheckBox("Node outline")
+        self.outline = QCheckBox("Node outline")
         layout.addWidget(self.useProxy)
         layout.addWidget(self.pnLabel)
         layout.addWidget(self.proxyName)
@@ -278,66 +312,66 @@ class OptionsDialog(QtWidgets.QDialog):
         p.settings.endGroup()
 
 
-class NodeDialog(QtWidgets.QWidget):
+class NodeDialog(QWidget):
     def __init__(self):
-        QtWidgets.QWidget.__init__(self)
+        super().__init__()
         self.filename = None
         self.shaders = None
         self.outline = False
-        self._main_layout = QtWidgets.QVBoxLayout()
-        toolBox = QtWidgets.QGroupBox()
-        self.toolLayout = QtWidgets.QHBoxLayout(toolBox)
+        self._main_layout = QVBoxLayout()
+        toolBox = QGroupBox()
+        self.toolLayout = QHBoxLayout(toolBox)
         toolSize = QSize(25, 25)
-        newButton = QtWidgets.QPushButton(
+        newButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.file"), ""
         )
         newButton.setFlat(True)
         newButton.setFixedSize(toolSize)
         newButton.setToolTip("New scene")
         self.toolLayout.addWidget(newButton)
-        openButton = QtWidgets.QPushButton(
+        openButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.folder-open"), ""
         )
         openButton.setFlat(True)
         openButton.setFixedSize(toolSize)
         openButton.setToolTip("Open scene")
         self.toolLayout.addWidget(openButton)
-        saveButton = QtWidgets.QPushButton(
+        saveButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.floppy-disk"), ""
         )
         saveButton.setFlat(True)
         saveButton.setFixedSize(toolSize)
         saveButton.setToolTip("Save scene")
         self.toolLayout.addWidget(saveButton)
-        alignVButton = QtWidgets.QPushButton(
+        alignVButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.arrows-up-down"), ""
         )
         alignVButton.setFlat(True)
         alignVButton.setFixedSize(toolSize)
         alignVButton.setToolTip("Align vertical")
         self.toolLayout.addWidget(alignVButton)
-        alignHButton = QtWidgets.QPushButton(
+        alignHButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.arrows-left-right"), ""
         )
         alignHButton.setFlat(True)
         alignHButton.setFixedSize(toolSize)
         alignHButton.setToolTip("Align horizontal")
         self.toolLayout.addWidget(alignHButton)
-        undoButton = QtWidgets.QPushButton(
+        undoButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.rotate-left"), ""
         )
         undoButton.setFlat(True)
         undoButton.setFixedSize(toolSize)
         undoButton.setToolTip("Undo (Ctrl+Z)")
         self.toolLayout.addWidget(undoButton)
-        redoButton = QtWidgets.QPushButton(
+        redoButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.rotate-right"), ""
         )
         redoButton.setFlat(True)
         redoButton.setFixedSize(toolSize)
         redoButton.setToolTip("Redo (Ctrl+Y)")
         self.toolLayout.addWidget(redoButton)
-        colorButton = QtWidgets.QPushButton(
+        colorButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.palette"), ""
         )
         colorButton.setFlat(True)
@@ -345,10 +379,10 @@ class NodeDialog(QtWidgets.QWidget):
         colorButton.setToolTip("Set Color (c)")
         self.toolLayout.addWidget(colorButton)
         self.toolLayout.addStretch()
-        self.searchEdit = QtWidgets.QLineEdit()
+        self.searchEdit = QLineEdit()
         self.searchEdit.setFixedSize(QSize(250, 25))
         self.toolLayout.addWidget(self.searchEdit)
-        searchButton = QtWidgets.QPushButton(
+        searchButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.magnifying-glass"), ""
         )
         searchButton.setFlat(True)
@@ -358,23 +392,23 @@ class NodeDialog(QtWidgets.QWidget):
         toolBox.setMaximumHeight(48)
         self._main_layout.addWidget(toolBox)
 
-        menuBar = QtWidgets.QMenuBar()
-        newAction = QtWidgets.QAction("&New", self)
+        menuBar = QMenuBar()
+        newAction = QAction("&New", self)
         newAction.setShortcut("Ctrl+N")
         newAction.triggered.connect(self.clear)
-        importAction = QtWidgets.QAction("Import", self)
+        importAction = QAction("Import", self)
 
-        exportAction = QtWidgets.QAction("Export", self)
+        exportAction = QAction("Export", self)
 
-        openAction = QtWidgets.QAction("&Open", self)
+        openAction = QAction("&Open", self)
         openAction.setShortcut("Ctrl+O")
         openAction.triggered.connect(self.openFile)
-        saveAction = QtWidgets.QAction("&Save", self)
+        saveAction = QAction("&Save", self)
         saveAction.setShortcut("Ctrl+S")
         saveAction.triggered.connect(self.saveFile)
-        saveAsAction = QtWidgets.QAction("Save as", self)
+        saveAsAction = QAction("Save as", self)
         saveAsAction.triggered.connect(self.saveFileAs)
-        exitAction = QtWidgets.QAction("&Exit", self)
+        exitAction = QAction("&Exit", self)
         exitAction.setShortcut("Ctrl+Q")
         exitAction.setStatusTip("Exit application")
         exitAction.triggered.connect(self.close)
@@ -385,31 +419,31 @@ class NodeDialog(QtWidgets.QWidget):
             fileMenu.addAction(openAction)
             fileMenu.addAction(saveAction)
             fileMenu.addAction(saveAsAction)
-            self.recentMenu = QtWidgets.QMenu("Recent")
+            self.recentMenu = QMenu("Recent")
             fileMenu.addMenu(self.recentMenu)
             fileMenu.addSeparator()
             fileMenu.addAction(importAction)
             fileMenu.addAction(exportAction)
             fileMenu.addAction(exitAction)
         optionsMenu = menuBar.addMenu("Options")
-        self.showIconsAction = QtWidgets.QAction("Show icons", self)
+        self.showIconsAction = QAction("Show icons", self)
         self.showIconsAction.setCheckable(True)
         self.showIconsAction.setChecked(True)
         self.showIconsAction.triggered.connect(self.showIcons)
-        self.showNamesAction = QtWidgets.QAction("Show names", self)
+        self.showNamesAction = QAction("Show names", self)
         self.showNamesAction.setCheckable(True)
         self.showNamesAction.setChecked(True)
         self.showNamesAction.triggered.connect(self.showNames)
-        self.showUrlsAction = QtWidgets.QAction("Show urls", self)
+        self.showUrlsAction = QAction("Show urls", self)
         self.showUrlsAction.setCheckable(True)
         self.showUrlsAction.setChecked(True)
         self.showUrlsAction.triggered.connect(self.showUrls)
-        self.showShadowsAction = QtWidgets.QAction("Show shadows", self)
+        self.showShadowsAction = QAction("Show shadows", self)
         self.showShadowsAction.setCheckable(True)
         self.showShadowsAction.setChecked(True)
         self.showShadowsAction.triggered.connect(self.showShadows)
 
-        editConnectionAction = QtWidgets.QAction("Connection options...", self)
+        editConnectionAction = QAction("Connection options...", self)
         editConnectionAction.triggered.connect(self.connectionOptions)
         if optionsMenu is not None:
             optionsMenu.addAction(self.showIconsAction)
@@ -423,27 +457,27 @@ class NodeDialog(QtWidgets.QWidget):
         self.recentFiles = []
         self.settings = QSettings("NodeBookmark Editor", "Zhuk")
 
-        shortcut = QtWidgets.QShortcut(QKeySequence("Del"), self)
+        shortcut = QShortcut(QKeySequence("Del"), self)
         shortcut.activated.connect(self.delete)
-        shortcut = QtWidgets.QShortcut(QKeySequence("C"), self)
+        shortcut = QShortcut(QKeySequence("C"), self)
         shortcut.activated.connect(self.switchColorPicker)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Ctrl+V"), self)
+        shortcut = QShortcut(QKeySequence("Ctrl+V"), self)
         shortcut.activated.connect(self.paste)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Ctrl+Z"), self)
+        shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
         shortcut.activated.connect(self.undo)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Ctrl+Y"), self)
+        shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
         shortcut.activated.connect(self.redo)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Up"), self)
+        shortcut = QShortcut(QKeySequence("Up"), self)
         shortcut.activated.connect(self.up)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Down"), self)
+        shortcut = QShortcut(QKeySequence("Down"), self)
         shortcut.activated.connect(self.down)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Left"), self)
+        shortcut = QShortcut(QKeySequence("Left"), self)
         shortcut.activated.connect(self.left)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Right"), self)
+        shortcut = QShortcut(QKeySequence("Right"), self)
         shortcut.activated.connect(self.right)
-        shortcut = QtWidgets.QShortcut(QKeySequence("F"), self)
+        shortcut = QShortcut(QKeySequence("F"), self)
         shortcut.activated.connect(self.zoom)
-        shortcut = QtWidgets.QShortcut(QKeySequence("Tab"), self)
+        shortcut = QShortcut(QKeySequence("Tab"), self)
         shortcut.activated.connect(self.tabCreate)
 
         newButton.clicked.connect(self.clear)
@@ -457,11 +491,11 @@ class NodeDialog(QtWidgets.QWidget):
         searchButton.clicked.connect(self.search)
         newButton.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         # global scene
-        self.scene = QtWidgets.QGraphicsScene(0, 0, 10, 10, self)
+        self.scene = QGraphicsScene(0, 0, 10, 10, self)
         self.viewport = View(self)
         self.viewport.setScene(self.scene)
         self.viewport.setViewportUpdateMode(
-            QtWidgets.QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
+            QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
         )  # BoundingRectViewportUpdate#FullViewportUpdate
         self.backImage = QImage("resources/icons/grid.png")
         rh = getattr(QPainter, "RenderHint", type("_", (), {}))
@@ -473,10 +507,10 @@ class NodeDialog(QtWidgets.QWidget):
         self.viewport.setRenderHints(cast(Any, hints))
         self.viewport.setBackgroundBrush(QBrush(self.backImage))
 
-        self.attrView = QtWidgets.QGraphicsView(self)
+        self.attrView = QGraphicsView(self)
         self.attrView.setMinimumWidth(200)
         self.attrView.setViewportUpdateMode(
-            QtWidgets.QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
+            QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
         )
         self.attrView.setRenderHints(
             cast(
@@ -497,13 +531,13 @@ class NodeDialog(QtWidgets.QWidget):
         self.attrView.setScene(self.attrScene)
         self.attrView.setAcceptDrops(True)
 
-        self.splitter = QtWidgets.QSplitter(self)
+        self.splitter = QSplitter(self)
         self.splitter.addWidget(self.viewport)
         self.splitter.addWidget(self.attrView)
         self._main_layout.addWidget(self.splitter)
         self.splitter.splitterMoved.connect(self.splitterMoved)
         icon = nodeUtils.options.getAwesomeIcon("fa6s.diagram-project")
-        self._systemIcons = QtWidgets.QFileIconProvider()
+        self._systemIcons = QFileIconProvider()
         self.setWindowIcon(icon)
         self.setLayout(self._main_layout)
         self.readSettings()
@@ -514,7 +548,10 @@ class NodeDialog(QtWidgets.QWidget):
             with open(arnold_path, "r", encoding="utf-8") as f:
                 self.shaders = yaml.safe_load(f.read()) or {}
         else:
-            self.shaders = getArnoldShaders()
+            arnold_shaders = getArnoldShaders()
+            self.shaders = (
+                arnold_shaders if arnold_shaders else getDemoShaders()
+            )
 
         self.rebuildRecentFiles()
         if self.recentFiles:
@@ -527,7 +564,7 @@ class NodeDialog(QtWidgets.QWidget):
     def rebuildRecentFiles(self):
         self.recentMenu.clear()
         for f in self.recentFiles:
-            action = QtWidgets.QAction(f, self)
+            action = QAction(f, self)
             action.triggered.connect(partial(self.openFile, f))
             self.recentMenu.addAction(action)
 
@@ -599,9 +636,7 @@ class NodeDialog(QtWidgets.QWidget):
             return
         r = QRectF()
         selected = [
-            x
-            for x in nodeUtils.options.selected
-            if issubclass(x.__class__, Node)
+            x for x in nodeUtils.options.selected if isinstance(x, Node)
         ]
         for s in selected:
             r = r.united(s.boundingRect().translated(s.pos()))
@@ -628,7 +663,7 @@ class NodeDialog(QtWidgets.QWidget):
         if (
             nodeUtils.options.undoStack.count() == 0
             or cmd is None
-            or cmd.__class__ != CommandMoveNode
+            or type(cmd) is not CommandMoveNode
         ):
             for n in sel:
                 cast(Any, n).old_pos = n.pos()
@@ -652,13 +687,13 @@ class NodeDialog(QtWidgets.QWidget):
         self.keyMove(QPointF(5, 0))
 
     def trayIconClick(self, reason):
-        if reason == QtWidgets.QSystemTrayIcon.ActivationReason.Trigger:
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
             if self.isVisible():
                 self.hide()
             else:
                 self.show()
-        elif reason == QtWidgets.QSystemTrayIcon.ActivationReason.Context:
-            menu = QtWidgets.QMenu(self)
+        elif reason == QSystemTrayIcon.ActivationReason.Context:
+            menu = QMenu(self)
             exitAction = menu.addAction("Exit")
             action = menu.exec(QCursor.pos())
             if action == exitAction:
@@ -695,7 +730,7 @@ class NodeDialog(QtWidgets.QWidget):
             # Apply visibility after setRect so it isn't overwritten by setRect reading action state.
             # Hide all pixmap children in the icon zone (top-left); catches iconItem and any duplicate.
             for child in n.childItems():
-                if isinstance(child, QtWidgets.QGraphicsPixmapItem):
+                if isinstance(child, QGraphicsPixmapItem):
                     try:
                         p = child.pos()
                         if p.x() < 40 and p.y() < 40:
@@ -719,7 +754,7 @@ class NodeDialog(QtWidgets.QWidget):
         # Force view to redraw
         old_mode = self.viewport.viewportUpdateMode()
         self.viewport.setViewportUpdateMode(
-            QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate
+            QGraphicsView.ViewportUpdateMode.FullViewportUpdate
         )
         vp_widget = self.viewport.viewport()
         if vp_widget is not None:
@@ -747,7 +782,7 @@ class NodeDialog(QtWidgets.QWidget):
         if not fname or not os.path.isfile(fname):
             return
         with open(fname, "r", encoding="utf-8") as f:
-            QtWidgets.QWidget.setStyleSheet(self, f.read())
+            super().setStyleSheet(f.read())
 
     def writeSettings(self):
         self.settings.beginGroup("MainWindow")
@@ -885,7 +920,7 @@ class NodeDialog(QtWidgets.QWidget):
             "url": "%s"
             % (
                 (lambda c: c.text() if c and hasattr(c, "text") else "")(
-                    QtWidgets.QApplication.clipboard()
+                    QApplication.clipboard()
                 )
             ),
         }
@@ -903,7 +938,7 @@ class NodeDialog(QtWidgets.QWidget):
 
     def openFile(self, f=None):
         if not f:
-            f, _mask = QtWidgets.QFileDialog.getOpenFileName(
+            f, _mask = QFileDialog.getOpenFileName(
                 self,
                 "Open File",
                 "",
@@ -1019,12 +1054,12 @@ class NodeDialog(QtWidgets.QWidget):
 
             nodeUtils.options.undoStack.clear()
         except Exception as e:
-            messageBox = QtWidgets.QMessageBox()
+            messageBox = QMessageBox()
             messageBox.critical(self, "Error", "An error has occured !\n%s" % e)
             messageBox.setFixedSize(500, 200)
 
     def saveFileAs(self):
-        self.filename, pattern = QtWidgets.QFileDialog.getSaveFileName(
+        self.filename, pattern = QFileDialog.getSaveFileName(
             self, "Save File", "", "NodeBookmark Files (*.nod)"
         )
         if self.filename:
@@ -1063,24 +1098,28 @@ class NodeDialog(QtWidgets.QWidget):
             return
         """
         if nodeUtils.options.undoStack.count() > 0:
-            ret = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Information, "Save Changes", "Save changes to\n%s" % self.filename,
-                              QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel).exec()
-            if QtWidgets.QMessageBox.Yes == ret:
+            ret = QMessageBox(
+                QMessageBox.Information,
+                "Save Changes",
+                "Save changes to\n%s" % self.filename,
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+            ).exec()
+            if QMessageBox.Yes == ret:
                 self.saveFile()
-            elif QtWidgets.QMessageBox.Cancel == ret:
+            elif QMessageBox.Cancel == ret:
                 event.ignore()
         """
         nodeUtils.options.saveArnoldSettings()
         nodeUtils.options.undoStack.clear()
         self.writeSettings()
-        for d in self.findChildren(QtWidgets.QDialog):
+        for d in self.findChildren(QDialog):
             # print d
             d.close()
 
 
-class Scene(QtWidgets.QGraphicsScene):
+class Scene(QGraphicsScene):
     def __init__(self, *args):
-        QtWidgets.QGraphicsScene.__init__(self, *args)
+        super().__init__(*args)
 
     def dragEnterEvent(self, event):
         if event is None:
@@ -1127,14 +1166,14 @@ class Scene(QtWidgets.QGraphicsScene):
         if len(nodeUtils.options.selected) == 0:
             return
         n = nodeUtils.options.selected[-1]
-        if not issubclass(n.__class__, NodeShader):
+        if not isinstance(n, NodeShader):
             return
 
-        QtWidgets.QGraphicsScene.contextMenuEvent(self, event)
+        super().contextMenuEvent(event)
         if event is not None and event.isAccepted():
             return
         parent = self.parent()
-        menu = QtWidgets.QMenu(cast(Any, parent))
+        menu = QMenu(cast(Any, parent))
         setdef = menu.addAction("Set as default")
         revert = menu.addAction("Revert to defaults")
 
@@ -1178,9 +1217,9 @@ class Scene(QtWidgets.QGraphicsScene):
             )
 
 
-class View(QtWidgets.QGraphicsView):
+class View(QGraphicsView):
     def __init__(self, parent=None):
-        QtWidgets.QGraphicsView.__init__(self, parent)
+        super().__init__(parent)
         self.dialog = parent
         self.old_pos = QPoint(0, 0)
         self.origin = QPoint(0, 0)
@@ -1189,7 +1228,7 @@ class View(QtWidgets.QGraphicsView):
             Any,
             getattr(
                 getattr(
-                    QtWidgets.QRubberBand,
+                    QRubberBand,
                     "Shape",
                     type("_", (), {"Rectangle": 0})(),
                 ),
@@ -1197,9 +1236,7 @@ class View(QtWidgets.QGraphicsView):
                 0,
             ),
         )
-        self.rubberband = QtWidgets.QRubberBand(rb_shape, self)
-        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.rubberband = QRubberBand(rb_shape, self)
         self.temp_connection = None
         self.setAcceptDrops(True)
 
@@ -1223,16 +1260,14 @@ class View(QtWidgets.QGraphicsView):
         self.updateColorPicker()
 
     def wheelEvent(self, event):
-        # self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
-        # scale node behavior
-        if len(nodeUtils.options.selected) == 1 and issubclass(
-            nodeUtils.options.selected[0].__class__, Node
+        if len(nodeUtils.options.selected) == 1 and isinstance(
+            nodeUtils.options.selected[0], Node
         ):
             n = nodeUtils.options.selected[0]
             n.prepareGeometryChange()
 
             if (
-                QtWidgets.QApplication.keyboardModifiers()
+                QApplication.keyboardModifiers()
                 & Qt.KeyboardModifier.ControlModifier
             ):
                 angle_delta = getattr(event, "angleDelta", None)
@@ -1244,7 +1279,7 @@ class View(QtWidgets.QGraphicsView):
                 n.setScale((d_y > 0 and n.scale() * 1.1) or n.scale() * 0.9)
                 return
             elif (
-                QtWidgets.QApplication.keyboardModifiers()
+                QApplication.keyboardModifiers()
                 & Qt.KeyboardModifier.ShiftModifier
             ):
                 angle_delta = getattr(event, "angleDelta", None)
@@ -1267,15 +1302,12 @@ class View(QtWidgets.QGraphicsView):
             angle_delta = angle_delta()
         delta = angle_delta
         if delta is not None and cast(Any, delta).y() > 0:
-            # if self.scaleFactor/scalingFactor<1.0: return
             self.scale(scalingFactor, scalingFactor)
             self.scaleFactor /= scalingFactor
-            # self.resetCachedContent()
         else:
             self.scaleFactor *= scalingFactor
             scalingFactor = 1.0 / scalingFactor
             self.scale(scalingFactor, scalingFactor)
-            # self.resetCachedContent()
         self.updateColorPicker()
 
     def mousePressEvent(self, event):
@@ -1296,7 +1328,7 @@ class View(QtWidgets.QGraphicsView):
             mime.setData("scene/rubberband", QByteArray())
             drag.setMimeData(mime)
             drag.exec(Qt.DropAction.MoveAction)
-        QtWidgets.QGraphicsView.mousePressEvent(self, event)
+        super().mousePressEvent(event)
 
     def dragEnterEvent(self, event):
         if event is None:
@@ -1329,7 +1361,7 @@ class View(QtWidgets.QGraphicsView):
             for sel in nodeUtils.options.selected:
                 cast(Any, sel).old_pos = sel.pos()
             sel = cast(NodeMimeData, mime).getObject()
-            if sel is not None and sel.__class__ == NodeGroup:
+            if sel is not None and type(sel) is NodeGroup:
                 sel_ = cast(Any, sel)
                 rect = QRectF(
                     sel_.pos().x(),
@@ -1348,9 +1380,7 @@ class View(QtWidgets.QGraphicsView):
                     else []
                 )
                 sel_.childs = [
-                    x
-                    for x in childs_list
-                    if issubclass(x.__class__, Node) and x != sel
+                    x for x in childs_list if isinstance(x, Node) and x != sel
                 ]
                 for x in sel_.childs:
                     cast(Any, x).old_pos = x.pos()
@@ -1373,7 +1403,7 @@ class View(QtWidgets.QGraphicsView):
         else:
             self.rubberband.hide()
 
-        QtWidgets.QGraphicsView.dragEnterEvent(self, event)
+        super().dragEnterEvent(event)
 
     def dragMoveEvent(self, event):
         if event is None:
@@ -1403,9 +1433,8 @@ class View(QtWidgets.QGraphicsView):
                 self.temp_connection.prepareGeometryChange()
                 self.temp_connection.updatePath()
                 self.temp_connection.update()
-                # self.viewport().update()
 
-            QtWidgets.QGraphicsView.dragMoveEvent(self, event)
+            super().dragMoveEvent(event)
             event.acceptProposedAction()
             return
         elif mime.hasFormat("node/resize"):
@@ -1421,7 +1450,6 @@ class View(QtWidgets.QGraphicsView):
                 sany.updateGeometry()
             self.old_pos = ep
             return
-            # nodeUtils.options.undoStack.push(CommandSetNodeAttribute([sel],{'rect':QRectF(rect.left(),rect.top(),rect.width()+res.x(),rect.height()+res.y())}))
         elif mime.hasFormat("node/move"):
             origin_pt = (
                 self.origin
@@ -1431,13 +1459,13 @@ class View(QtWidgets.QGraphicsView):
             scene = self.scene()
             for sel in nodeUtils.options.selected:
                 sel_any = cast(Any, sel)
-                if sel.__class__ == NodeGroup:
+                if type(sel) is NodeGroup:
                     for x in getattr(sel_any, "childs", []):
                         pos = self.mapToScene(cast(Any, ep))
                         pos = pos - origin_pt
                         pos = pos + cast(Any, x).old_pos
                         x.setPos(pos.x(), pos.y())
-                if issubclass(sel.__class__, Node):
+                if isinstance(sel, Node):
                     p_pt = (
                         self.mapToScene(cast(Any, ep))
                         - origin_pt
@@ -1446,12 +1474,12 @@ class View(QtWidgets.QGraphicsView):
                     sel.setPos(p_pt.x(), p_pt.y())
             return
         event.accept()
-        QtWidgets.QGraphicsView.dragMoveEvent(self, event)
+        super().dragMoveEvent(event)
         return
 
         # Disconnect node behavior
-        if len(nodeUtils.options.selected) == 1 and issubclass(
-            nodeUtils.options.selected[0].__class__, Node
+        if len(nodeUtils.options.selected) == 1 and isinstance(
+            nodeUtils.options.selected[0], Node
         ):
             sel = nodeUtils.options.selected[0]
             self.mouse_stack.append((event.pos() - self.old_pos))
@@ -1470,8 +1498,6 @@ class View(QtWidgets.QGraphicsView):
                 ):
                     state = -1
             if state == -1 and len(sel.connections) > 0:
-                # remove connections
-                # nodeUtils.options.undoStack.undo()
                 nodeUtils.options.undoStack.push(
                     CommandDeleteConnections(self.scene(), sel.connections)
                 )
@@ -1485,7 +1511,7 @@ class View(QtWidgets.QGraphicsView):
             if scene is not None:
                 scene.removeItem(self.temp_connection)
             self.temp_connection = None
-        QtWidgets.QGraphicsView.dragLeaveEvent(self, event)
+        super().dragLeaveEvent(event)
 
     def dropEvent(self, event):
         if event is None:
@@ -1513,16 +1539,16 @@ class View(QtWidgets.QGraphicsView):
             ep = _event_pos(event)
             for item in self.items(ep):
                 if (
-                    not issubclass(item.__class__, Node)
+                    not isinstance(item, Node)
                     or (item in nodeUtils.options.selected)
-                    or item.__class__ == NodeGroup
+                    or type(item) is NodeGroup
                 ):
                     continue
                 selected = nodeUtils.options.selected
                 nodeUtils.options.clearSelection()
                 nodeUtils.options.undoStack.undo()
                 for s in selected:
-                    if not issubclass(s.__class__, Node):
+                    if not isinstance(s, Node):
                         continue
                     d = {
                         "name": "Connection",
@@ -1539,10 +1565,9 @@ class View(QtWidgets.QGraphicsView):
             sel = [
                 x
                 for x in self.items(rect)
-                if issubclass(x.__class__, Node) or x.__class__ == Connection
+                if isinstance(x, Node) or type(x) is Connection
             ]
             nodeUtils.options.setSelection(sel)
-            # self.viewport().update()
             return
         elif mime.hasFormat("node/connect"):
             item = cast(NodeMimeData, mime).getObject()
@@ -1561,17 +1586,17 @@ class View(QtWidgets.QGraphicsView):
                         CommandCreateConnection(scene, d)
                     )
 
-        QtWidgets.QGraphicsView.dropEvent(self, event)
+        super().dropEvent(event)
 
     def contextMenuEvent(self, event):
         if event is None:
             return
         ep = _event_pos(event)
         for item in self.items(ep):
-            if issubclass(item.__class__, Node) or item.__class__ == Connection:
-                QtWidgets.QGraphicsView.contextMenuEvent(self, event)
+            if isinstance(item, Node) or type(item) is Connection:
+                super().contextMenuEvent(event)
                 return
-        menu = QtWidgets.QMenu(self)
+        menu = QMenu(self)
         newNodeAction = menu.addAction("New node")
         newBookmarkAction = menu.addAction("New bookmark")
         newNoteAction = menu.addAction("New note")
@@ -1611,9 +1636,9 @@ class View(QtWidgets.QGraphicsView):
             )
 
 
-class ColorPicker(QtWidgets.QGraphicsItem):
+class ColorPicker(QGraphicsItem):
     def __init__(self):
-        QtWidgets.QGraphicsItem.__init__(self)
+        super().__init__()
         self.setZValue(2)
 
         ncolors = 30
@@ -1631,12 +1656,6 @@ class ColorPicker(QtWidgets.QGraphicsItem):
             item.setBrush(QBrush(color))
             item.setPos(0, i / nrows * (size + 2))
             self.colors += [item]
-        # for i in range(nrows):
-        #     item = ColorPickerItem(0, 0, size, size, self)
-        #     color = QColor(i * 255 / nrows, i * 255 / nrows, i * 255 / nrows)
-        #     item.setBrush(QBrush(color))
-        #     item.setPos(i * (size + 2) - i / nrows * (size + 2) * nrows, (i / nrows - 1) * (size + 2))
-        #     self.colors += [item]
 
     def boundingRect(self):
         return self.rect
@@ -1647,9 +1666,9 @@ class ColorPicker(QtWidgets.QGraphicsItem):
         pass
 
 
-class ColorPickerItem(QtWidgets.QGraphicsRectItem):
+class ColorPickerItem(QGraphicsRectItem):
     def __init__(self, *args):
-        QtWidgets.QGraphicsRectItem.__init__(self, *args)
+        super().__init__(*args)
 
     def mousePressEvent(self, event):
         if event is None or event.button() != Qt.MouseButton.LeftButton:
@@ -1690,9 +1709,9 @@ def str_to_obj(astr):
                 raise
 
 
-class PerfomanceGraph(QtWidgets.QGraphicsItem):
+class PerfomanceGraph(QGraphicsItem):
     def __init__(self, *args):
-        QtWidgets.QGraphicsItem.__init__(self, *args)
+        super().__init__(*args)
         self.rect = QRectF()
         self.path = QPainterPath()
 
@@ -1702,11 +1721,9 @@ class PerfomanceGraph(QtWidgets.QGraphicsItem):
     def updatePath(self, li):
         self.prepareGeometryChange()
         self.path = QPainterPath()
-        # max_li = sorted(li)[-1]
         scene = self.scene()
         views = scene.views() if scene else []
         scene_height = float(views[0].height()) if views else 100.0
-        # if max_li == 0:max_li = scene_height
         max_li = 0.5
         v = lerp_2d_list((0, max_li), (scene_height, 100), li[0])
         self.path.moveTo(0, v)
@@ -1731,17 +1748,17 @@ def _default_source_editor_template():
     return ""
 
 
-class CallDialog(QtWidgets.QDialog):
+class CallDialog(QDialog):
     def __init__(self, parent=None, callGraph=None):
-        QtWidgets.QDialog.__init__(self, parent)
+        super().__init__(parent)
         self.callGraph = callGraph
         self.timer = QTimer()
-        menuBar = QtWidgets.QMenuBar()
+        menuBar = QMenuBar()
         optionsMenu = menuBar.addMenu("nodeUtils.options")
-        self.drawPerfomanceOption = QtWidgets.QAction("View perfomance", self)
+        self.drawPerfomanceOption = QAction("View perfomance", self)
         self.drawPerfomanceOption.setCheckable(True)
         self.drawPerfomanceOption.triggered.connect(self.switchGraph)
-        self.sourceEditorOption = QtWidgets.QAction("Set editor", self)
+        self.sourceEditorOption = QAction("Set editor", self)
         self.sourceEditorOption.triggered.connect(self.setSourceEditor)
         if optionsMenu is not None:
             optionsMenu.addAction(self.drawPerfomanceOption)
@@ -1749,30 +1766,28 @@ class CallDialog(QtWidgets.QDialog):
 
         self.sourceEditor = _default_source_editor_template()
 
-        layout = QtWidgets.QVBoxLayout()
+        layout = QVBoxLayout()
         self.setLayout(layout)
         layout.setMenuBar(menuBar)
-        self.table = QtWidgets.QTableWidget(200, 4)
+        self.table = QTableWidget(200, 4)
         self.table.setHorizontalHeaderLabels(
             ["Method", "Calls", "Time", "Time per call"]
         )
-        self.table.setEditTriggers(
-            QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers
-        )
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
-        self.button = QtWidgets.QPushButton("Start timer")
+        self.button = QPushButton("Start timer")
 
-        self.view = QtWidgets.QGraphicsView(self)
+        self.view = QGraphicsView(self)
         self.view.setMinimumWidth(200)
         self.view.setViewportUpdateMode(
-            QtWidgets.QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate
-        )  # MinimalViewportUpdate
+            QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate
+        )
         self.view.setRenderHints(
             QPainter.RenderHint.Antialiasing
             | QPainter.RenderHint.SmoothPixmapTransform
         )
         self.view.setBackgroundBrush(QBrush(QColor(100, 100, 100)))
-        self.scene = QtWidgets.QGraphicsScene(0, 0, 180, 500, self)
+        self.scene = QGraphicsScene(0, 0, 180, 500, self)
         self.view.setScene(self.scene)
         self.view.setAcceptDrops(True)
 
@@ -1781,7 +1796,7 @@ class CallDialog(QtWidgets.QDialog):
         self.previousTime = 0
         self.scene.addItem(self.perfGraph)
 
-        self.splitter = QtWidgets.QSplitter(self)
+        self.splitter = QSplitter(self)
         self.splitter.addWidget(self.table)
         self.splitter.addWidget(self.view)
         layout.addWidget(self.splitter)
@@ -1814,14 +1829,14 @@ class CallDialog(QtWidgets.QDialog):
 
     def closeEvent(self, event):  # pyright: ignore[reportIncompatibleMethodOverride]
         self.saveSettings()
-        QtWidgets.QDialog.closeEvent(self, event)
+        super().closeEvent(event)
 
     def setSourceEditor(self):
-        text = QtWidgets.QInputDialog.getText(
+        text = QInputDialog.getText(
             self,
             "Set editor",
             "Command template (%(source)s = file, %(line)d = line):",
-            QtWidgets.QLineEdit.EchoMode.Normal,
+            QLineEdit.EchoMode.Normal,
             self.sourceEditor,
         )
         if text:
@@ -1853,7 +1868,7 @@ class CallDialog(QtWidgets.QDialog):
 
     def itemClick(self, row, column):
         if not self.sourceEditor or not self.sourceEditor.strip():
-            QtWidgets.QMessageBox.information(
+            QMessageBox.information(
                 self,
                 "Source editor",
                 "Set your editor command in Options → Set editor.\n"
@@ -1899,24 +1914,21 @@ class CallDialog(QtWidgets.QDialog):
             j = sum(1 for x in generator)
             self.table.setRowCount(j)
             for node in output.processor.nodes():
-                item = QtWidgets.QTableWidgetItem(node.name)
+                item = QTableWidgetItem(node.name)
                 self.table.setItem(i, 0, item)
-                item = QtWidgets.QTableWidgetItem()
+                item = QTableWidgetItem()
                 item.setData(Qt.ItemDataRole.EditRole, node.calls.value)
                 self.table.setItem(i, 1, item)
-                item = QtWidgets.QTableWidgetItem()
+                item = QTableWidgetItem()
                 item.setData(Qt.ItemDataRole.EditRole, node.time.value)
                 total_time += node.time.value
                 self.table.setItem(i, 2, item)
-                item = QtWidgets.QTableWidgetItem()
+                item = QTableWidgetItem()
                 item.setData(
                     Qt.ItemDataRole.EditRole,
                     node.time.value / float(node.calls.value),
                 )
                 self.table.setItem(i, 3, item)
-                # print "name: ",node.name
-                # print "calls: ", node.calls.value
-                # print "time: ", node.time.value
                 i += 1
             self.table.update()
         self.perfList += [total_time - self.previousTime]
@@ -1930,9 +1942,9 @@ class CallDialog(QtWidgets.QDialog):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    QtWidgets.QApplication.setDoubleClickInterval(400)
-    QtWidgets.QApplication.setStartDragTime(200)
+    app = QApplication(sys.argv)
+    QApplication.setDoubleClickInterval(400)
+    QApplication.setStartDragTime(200)
     window = NodeDialog()
     window.show()
     sys.exit(app.exec())
@@ -1945,7 +1957,7 @@ if __name__ == "__main__":
 
     # with callGraph:
 
-    #     app = QtWidgets.QApplication(sys.argv)
+    #     app = QApplication(sys.argv)
 
     #     window = NodeDialog()
     #     window.show()

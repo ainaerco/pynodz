@@ -3,8 +3,14 @@ from __future__ import annotations
 from typing import cast
 
 from qtpy.QtCore import Qt, QRectF
-from qtpy.QtWidgets import QInputDialog
-from qtpy import QtWidgets
+from qtpy.QtWidgets import (
+    QFileDialog,
+    QGraphicsLinearLayout,
+    QGraphicsWidget,
+    QInputDialog,
+    QMenu,
+    QWidget,
+)
 from .Node import Node
 from nodeUtils import NodeMimeData
 from nodeParts.Parts import NodeInput
@@ -20,13 +26,12 @@ from copy import deepcopy
 import nodeUtils
 from htmlEditor import HtmlEditor
 from nodeUtils import mergeDicts
-from nodeCommand import CommandSetNodeAttribute, CommandCreateConnection
 
 
 class NodeShader(Node):
     def __init__(self, d, dialog=None):
-        Node.__init__(self, d, dialog)
-        layout = QtWidgets.QGraphicsLinearLayout(Qt.Orientation.Vertical)
+        super().__init__(d, dialog)
+        layout = QGraphicsLinearLayout(Qt.Orientation.Vertical)
         layout.setSpacing(7)
         layout.setContentsMargins(23, 20, 7, 7)
         self.setLayout(layout)
@@ -63,8 +68,8 @@ class NodeShader(Node):
 
     def resize(self, width, height):
         rect = QRectF(0, 0, width, height)
-        Node.setRect(self, rect)
-        QtWidgets.QGraphicsWidget.resize(self, width, height)
+        super().setRect(rect)
+        super().resize(width, height)
 
     def updateGeometry(self):
         layout = self.layout()
@@ -86,10 +91,10 @@ class NodeShader(Node):
 
         height += b if b is not None else 0
         self.resize(width, height)
-        QtWidgets.QGraphicsWidget.updateGeometry(self)
+        super().updateGeometry()
 
     def init(self, d):
-        Node.init(self, d)
+        super().init(d)
         self.shader = d.get("shader", None)
         self.attributes = {}
         self.pinnedAttributes = {}
@@ -153,6 +158,8 @@ class NodeShader(Node):
         self.updateGeometry()
 
     def updateAttribute(self, name, value):
+        from nodeCommand import CommandSetNodeAttribute
+
         v = {name: deepcopy(value)}
         nodeUtils.options.undoStack.push(
             CommandSetNodeAttribute([self], {"values": v})
@@ -206,7 +213,7 @@ class NodeShader(Node):
         self.dialog.attrView.setSceneRect(QRectF())
         self.dialog.attrScene.clear()
         self.dialog.attrView.setAlignment(Qt.AlignmentFlag.AlignTop)
-        layout = QtWidgets.QGraphicsLinearLayout(Qt.Orientation.Vertical)
+        layout = QGraphicsLinearLayout(Qt.Orientation.Vertical)
         layout.setSpacing(7)
         attr = {"name": self.name, "type": "STRING", "default": ""}
         nameItem = NodeAttrString(self, nodeUtils.options, attr)
@@ -230,9 +237,7 @@ class NodeShader(Node):
                     },
                 )
 
-                pageLayout = QtWidgets.QGraphicsLinearLayout(
-                    Qt.Orientation.Vertical
-                )
+                pageLayout = QGraphicsLinearLayout(Qt.Orientation.Vertical)
                 pageLayout.setSpacing(7)
                 pageLayout.setContentsMargins(23, 20, 7, 7)
 
@@ -266,7 +271,7 @@ class NodeShader(Node):
                 height += item.geometry().height() + 7
                 layout.addItem(item)
 
-        form = QtWidgets.QGraphicsWidget()
+        form = QGraphicsWidget()
         form.setLayout(layout)
         form.setPos(0, 0)
         self.dialog.attrScene.addItem(form)
@@ -286,7 +291,7 @@ class NodeShader(Node):
             or obj == self
         ):
             return
-        if obj.__class__ == Node:
+        if type(obj) is Node:
             d = {
                 "name": "Connection",
                 "parent": obj.id,
@@ -294,6 +299,8 @@ class NodeShader(Node):
             }
             scene = self.scene()
             if scene is not None:
+                from nodeCommand import CommandCreateConnection
+
                 nodeUtils.options.undoStack.push(
                     CommandCreateConnection(scene, d)
                 )
@@ -302,9 +309,7 @@ class NodeShader(Node):
             return
         scene = self.scene()
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         shader = self.dialog.shaders.get(self.shader)
         if shader is None:
             return
@@ -329,6 +334,8 @@ class NodeShader(Node):
         }
         scene = self.scene()
         if scene is not None:
+            from nodeCommand import CommandCreateConnection
+
             nodeUtils.options.undoStack.push(CommandCreateConnection(scene, d))
 
     def contextMenuEvent(self, event):
@@ -336,9 +343,7 @@ class NodeShader(Node):
             return
         scene = self.scene()
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         setIconAction = menu.addAction("Set icon")
         clearIconAction = menu.addAction("Clear icon")
         editNameAction = menu.addAction("Edit title")
@@ -346,7 +351,9 @@ class NodeShader(Node):
         setOutputAction = menu.addAction("Set output type")
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            from nodeCommand import CommandSetNodeAttribute
+
+            filename, _ = QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if filename:
@@ -354,6 +361,8 @@ class NodeShader(Node):
                     CommandSetNodeAttribute([self], {"icon": filename})
                 )
         elif action == clearIconAction and self.icon is not None:
+            from nodeCommand import CommandSetNodeAttribute
+
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"icon": None})
             )
@@ -365,6 +374,8 @@ class NodeShader(Node):
         elif action == editKeywordsAction:
 
             def on_keywords_edit(text):
+                from nodeCommand import CommandSetNodeAttribute
+
                 nodeUtils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}

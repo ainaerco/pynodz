@@ -1,16 +1,15 @@
 from qtpy.QtCore import Qt, QRectF
-from qtpy import QtWidgets
+from qtpy.QtWidgets import QMenu, QWidget
 
 import nodeUtils
 from htmlEditor import HtmlEditor
 from .Node import Node
 from nodeParts.Parts import TitleItem, NodeResize
-from nodeCommand import CommandSetNodeAttribute
 
 
 class NodeNote(Node):
     def __init__(self, d, dialog=None):
-        Node.__init__(self, d, dialog)
+        super().__init__(d, dialog)
         self.html = d.get("html", None)
         self.htmlItem = TitleItem("", self, "html")
         doc = self.htmlItem.document()
@@ -54,6 +53,8 @@ class NodeNote(Node):
 
     def mouseDoubleClickEvent(self, event):
         def f(text):
+            from nodeCommand import CommandSetNodeAttribute
+
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"html": text.toHtml()})
             )
@@ -69,9 +70,7 @@ class NodeNote(Node):
             return
         scene = self.scene()
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         editNameAction = menu.addAction("Edit title")
         action = menu.exec(event.screenPos())
         if action == editNameAction and self.nameItem is not None:

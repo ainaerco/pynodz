@@ -1,29 +1,26 @@
 from qtpy.QtCore import Qt, QRectF
-from qtpy import QtWidgets
+from qtpy.QtWidgets import QGraphicsLinearLayout, QMenu, QWidget
 
 from .Node import Node
 from nodeParts.Parts import NodeInput
 import nodeUtils
 from copy import deepcopy
 from nodeUtils import incrementName
-from nodeCommand import CommandSetNodeAttribute
 from nodeAttrs import getAttrByType, NodeAttr
 
 
 class NodeControl(Node):
     def __init__(self, d, dialog=None):
-        Node.__init__(self, d, dialog)
+        super().__init__(d, dialog)
         self.setAcceptDrops(True)
         self.setZValue(0)
-        self.graphicLayout = QtWidgets.QGraphicsLinearLayout(
-            Qt.Orientation.Vertical
-        )
+        self.graphicLayout = QGraphicsLinearLayout(Qt.Orientation.Vertical)
         self.graphicLayout.setSpacing(7)
         self.graphicLayout.setContentsMargins(23, 20, 7, 7)
         self.setLayout(self.graphicLayout)
         self.attrNames = {}
         for key in self.values.keys():
-            c = self.values[key].__class__
+            c = type(self.values[key])
             if c is float:
                 attr = {
                     "default": 0,
@@ -54,8 +51,8 @@ class NodeControl(Node):
 
     def resize(self, width, height):
         rect = QRectF(0, 0, width, height)
-        Node.setRect(self, rect)
-        QtWidgets.QGraphicsWidget.resize(self, width, height)
+        super().setRect(rect)
+        super().resize(width, height)
 
     def updateGeometry(self):
         # self.prepareGeometryChange()
@@ -74,10 +71,10 @@ class NodeControl(Node):
             width = w + (left or 0) + (r or 0)
         height += b if b is not None else 0
         self.resize(width, height)
-        QtWidgets.QGraphicsWidget.updateGeometry(self)
+        super().updateGeometry()
 
     def init(self, d):
-        Node.init(self, d)
+        super().init(d)
         self.pinnedAttributes = {}
         self.values = d.get("values", {})
 
@@ -120,9 +117,7 @@ class NodeControl(Node):
             return
         scene = self.scene()
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         addFloatControl = menu.addAction("Add Float Control")
         addVectorControl = menu.addAction("Add Vector Control")
         addStringControl = menu.addAction("Add String Control")
@@ -159,6 +154,8 @@ class NodeControl(Node):
         return res
 
     def updateAttribute(self, name, value):
+        from nodeCommand import CommandSetNodeAttribute
+
         v = {name: deepcopy(value)}
         nodeUtils.options.undoStack.push(
             CommandSetNodeAttribute([self], {"values": v})

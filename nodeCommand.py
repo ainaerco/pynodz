@@ -6,12 +6,12 @@ from qtpy.QtCore import (
 )
 from qtpy.QtCore import Property  # type: ignore[attr-defined]
 from qtpy.QtGui import QUndoCommand
-from qtpy import QtWidgets
 
 import nodeUtils
 from nodeUtils import listRemove, incrementName
 from nodeParts.Connection import Connection
 from nodeUtils import getNodeClass
+from nodeTypes import Node
 import bezier
 
 
@@ -89,7 +89,7 @@ def _create_node_animations(item, old_pos, new_pos, duration_ms, fade_out):
 
 class CommandMoveNode(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, pos):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.node_ids = [x.id for x in sel]
         self.positions = pos
         self.old_positions = [x.old_pos for x in sel]
@@ -110,7 +110,7 @@ class CommandMoveNode(QUndoCommand):  # type: ignore[misc]
 
 class CommandMoveAnimNode(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, pos, time, fadeOut=False):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.node_ids = [x.id for x in sel]
         self.positions = pos
         self.fadeOut = fadeOut
@@ -147,7 +147,7 @@ class CommandMoveAnimNode(QUndoCommand):  # type: ignore[misc]
 
 class CommandSetNodeAttribute(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, d):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.node_ids = [x.id for x in sel]
         self.old_names = []
         self.new_names = []
@@ -189,7 +189,7 @@ class CommandSetNodeAttribute(QUndoCommand):  # type: ignore[misc]
 
 class CommandSetColor(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, color):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.node_ids = [x.id for x in sel]
 
         self.color = color
@@ -209,7 +209,7 @@ class CommandSetColor(QUndoCommand):  # type: ignore[misc]
 
 class CommandCreateNode(QUndoCommand):  # type: ignore[misc]
     def __init__(self, dialog, d):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.dialog = dialog
         self.dict = d
         if "name" not in self.dict.keys():
@@ -240,7 +240,7 @@ class CommandCreateNode(QUndoCommand):  # type: ignore[misc]
 
 class CommandCreateConnection(QUndoCommand):  # type: ignore[misc]
     def __init__(self, scene, d):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.scene = scene
         self.dict = d
         if "name" not in self.dict.keys():
@@ -288,7 +288,7 @@ class CommandCreateConnection(QUndoCommand):  # type: ignore[misc]
 
 class CommandDeleteConnections(QUndoCommand):  # type: ignore[misc]
     def __init__(self, scene, conns):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.scene = scene
         self.conn_ids = [x.id for x in conns]
         self.saved_conns = []
@@ -313,15 +313,15 @@ class CommandDeleteConnections(QUndoCommand):  # type: ignore[misc]
         for c in conns:
             self.saved_conns += [c.toDict()]
             listRemove(c.child.connections, c)
-            listRemove(c.parent.connections, c)
-            listRemove(c.parent.childs, c.child)
+            listRemove(c.parent_node.connections, c)
+            listRemove(c.parent_node.childs, c.child)
             nodeUtils.options.deleteConnection(c.id)
             self.scene.removeItem(c)
 
 
 class CommandDeleteNodes(QUndoCommand):  # type: ignore[misc]
     def __init__(self, dialog, nodes):
-        QUndoCommand.__init__(self)
+        super().__init__()
         self.node_ids = [x.id for x in nodes]
         self.dialog = dialog
         self.saved_nodes = []
@@ -353,13 +353,13 @@ class CommandDeleteNodes(QUndoCommand):  # type: ignore[misc]
         self.saved_nodes = []
         ns = [nodeUtils.options.nodes[x] for x in self.node_ids]
         for n in ns:
-            if n.__class__.__name__ == "Node" and n.collapsed:
+            if type(n) is Node and n.collapsed:
                 n.setCollapsed(True)
             for c in n.connections:
                 self.saved_conns += [c.toDict()]
                 listRemove(c.child.connections, c)
-                listRemove(c.parent.connections, c)
-                listRemove(c.parent.childs, c.child)
+                listRemove(c.parent_node.connections, c)
+                listRemove(c.parent_node.childs, c.child)
                 nodeUtils.options.deleteConnection(c.id)
                 self.dialog.scene.removeItem(c)
             self.saved_nodes += [n.toDict()]

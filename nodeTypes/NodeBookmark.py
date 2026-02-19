@@ -1,9 +1,15 @@
 import webbrowser
 from qtpy.QtGui import QFont, QColor
 from qtpy.QtCore import Qt, QRectF, QUrl, QFileInfo
-from qtpy import QtWidgets
+from qtpy.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QGraphicsItem,
+    QGraphicsPixmapItem,
+    QMenu,
+    QWidget,
+)
 import nodeUtils
-from nodeCommand import CommandSetNodeAttribute
 from .Node import Node
 from nodeParts.Parts import TitleItem, NodeResize
 from htmlEditor import HtmlEditor
@@ -41,7 +47,7 @@ class NodeBookmark(Node):
                     ICONS[typ] = pix
 
                 self.icon = pix
-                self.iconItem = QtWidgets.QGraphicsPixmapItem(pix, self)
+                self.iconItem = QGraphicsPixmapItem(pix, self)
                 self.iconItem.setPos(5, 5)
 
         # Ensure height fits title row + small gap + URL row (avoid clipping)
@@ -62,9 +68,7 @@ class NodeBookmark(Node):
                 self.nameItem.setVisible(
                     self.dialog.showNamesAction.isChecked()
                 )
-        self.setFlag(
-            QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape
-        )
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape)
 
     def addExtraControls(self):
         self.resizeItem = NodeResize(self, rect=QRectF(-12, -12, 12, 12))
@@ -111,9 +115,7 @@ class NodeBookmark(Node):
             return
         scene = self.scene()
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         setIconAction = menu.addAction("Set icon")
         editNameAction = menu.addAction("Edit title")
         editUrlAction = menu.addAction("Edit url")
@@ -121,7 +123,9 @@ class NodeBookmark(Node):
         editKeywordsAction = menu.addAction("Edit keywords")
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            from nodeCommand import CommandSetNodeAttribute
+
+            filename, _ = QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if filename:
@@ -139,12 +143,14 @@ class NodeBookmark(Node):
             )
             self.urlItem.setFocus(Qt.FocusReason.MouseFocusReason)
         elif action == copyUrlAction and self.url is not None:
-            clipboard = QtWidgets.QApplication.clipboard()
+            clipboard = QApplication.clipboard()
             if clipboard is not None:
                 clipboard.setText(self.url)
         elif action == editKeywordsAction:
 
             def on_keywords_edit(text):
+                from nodeCommand import CommandSetNodeAttribute
+
                 nodeUtils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}

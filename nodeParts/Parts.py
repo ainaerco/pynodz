@@ -1,25 +1,29 @@
 from qtpy.QtGui import QColor, QTextCursor, QTextCharFormat, QDrag
 from qtpy.QtCore import Qt, QByteArray
-from qtpy import QtWidgets
+from qtpy.QtWidgets import (
+    QGraphicsDropShadowEffect,
+    QGraphicsPixmapItem,
+    QGraphicsRectItem,
+    QGraphicsTextItem,
+)
 from qtpy.QtGui import QBrush, QPen, QCursor
 from qtpy.QtSvg import QSvgRenderer
 from qtpy.QtSvgWidgets import QGraphicsSvgItem
 import nodeUtils
 from nodeUtils import NodeMimeData
-from nodeCommand import CommandSetNodeAttribute
 
 
-class TitleItem(QtWidgets.QGraphicsTextItem):
+class TitleItem(QGraphicsTextItem):
     def __init__(self, text, parent, attr, title=False):
-        QtWidgets.QGraphicsTextItem.__init__(self, text, parent)
+        super().__init__(text, parent)
         self.setFocus(Qt.FocusReason.MouseFocusReason)
-        self.parent = parent
+        self.parent_item = parent
         self.attr = attr
         self.setFont(nodeUtils.options.titleFont)
         if title:
             self.setDefaultTextColor(QColor(200, 200, 250))
 
-            shadow = QtWidgets.QGraphicsDropShadowEffect(self)
+            shadow = QGraphicsDropShadowEffect(self)
             shadow.setOffset(2, 2)
             shadow.setBlurRadius(2)
             self.setGraphicsEffect(shadow)
@@ -32,11 +36,13 @@ class TitleItem(QtWidgets.QGraphicsTextItem):
 
     def keyPressEvent(self, event):
         if event is not None and event.key() != Qt.Key.Key_Return:
-            QtWidgets.QGraphicsTextItem.keyPressEvent(self, event)
+            super().keyPressEvent(event)
         else:
+            from nodeCommand import CommandSetNodeAttribute
+
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute(
-                    [self.parent], {self.attr: self.toPlainText()}
+                    [self.parent_item], {self.attr: self.toPlainText()}
                 )
             )
             self.setTextInteractionFlags(
@@ -48,20 +54,22 @@ class TitleItem(QtWidgets.QGraphicsTextItem):
             Qt.TextInteractionFlag.TextEditorInteraction
             == self.textInteractionFlags()
         ):
+            from nodeCommand import CommandSetNodeAttribute
+
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute(
-                    [self.parent], {self.attr: self.toPlainText()}
+                    [self.parent_item], {self.attr: self.toPlainText()}
                 )
             )
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         self.textCursor().clearSelection()
-        QtWidgets.QGraphicsTextItem.focusOutEvent(self, event)
+        super().focusOutEvent(event)
 
 
-class NodeInput(QtWidgets.QGraphicsRectItem):
+class NodeInput(QGraphicsRectItem):
     def __init__(self, parent, type=None):
-        QtWidgets.QGraphicsRectItem.__init__(self, parent)
-        self.parent = parent
+        super().__init__(parent)
+        self.parent_item = parent
         self._type = None
         self.setType(type)
         self._brush = QBrush(1)
@@ -97,10 +105,9 @@ class NodeInput(QtWidgets.QGraphicsRectItem):
         painter.drawEllipse(self.boundingRect())
 
 
-class NodeResize(QtWidgets.QGraphicsPixmapItem):
+class NodeResize(QGraphicsPixmapItem):
     def __init__(self, node, **kwargs):
-        QtWidgets.QGraphicsPixmapItem.__init__(
-            self,
+        super().__init__(
             nodeUtils.options.getAwesomePixmap("fa6s.maximize", 16),
             node,
         )
@@ -122,19 +129,17 @@ class NodeResize(QtWidgets.QGraphicsPixmapItem):
         drag.exec(Qt.DropAction.MoveAction)
 
 
-class DropDown(QtWidgets.QGraphicsPixmapItem):
+class DropDown(QGraphicsPixmapItem):
     def __init__(self, parent, options):
         pixmap = options.getAwesomePixmap("fa6s.caret-down", options.iconSize)
-        QtWidgets.QGraphicsPixmapItem.__init__(self, pixmap, parent)
+        super().__init__(pixmap, parent)
         self.state = False
-        self.parent = parent
-        self.setShapeMode(
-            QtWidgets.QGraphicsPixmapItem.ShapeMode.BoundingRectShape
-        )
+        self.parent_item = parent
+        self.setShapeMode(QGraphicsPixmapItem.ShapeMode.BoundingRectShape)
 
     def setState(self, state):
         self.state = state
-        self.parent.setCollapsed(not state)
+        self.parent_item.setCollapsed(not state)
 
     def mousePressEvent(self, event):
         if event is None:

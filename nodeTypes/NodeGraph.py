@@ -1,13 +1,12 @@
 from qtpy.QtGui import QFontMetrics, QColor, QLinearGradient, QBrush
 from qtpy.QtCore import QPointF
 from .Node import Node
-from nodeCommand import CommandMoveNode
 import nodeUtils
 
 
 class NodeGraph(Node):
     def __init__(self, d, dialog=None):
-        Node.__init__(self, d, dialog)
+        super().__init__(d, dialog)
 
     def addExtraControls(self):
         pass
@@ -16,7 +15,7 @@ class NodeGraph(Node):
         fm = QFontMetrics(nodeUtils.options.titleFont)
         width = max(rect.width(), fm.horizontalAdvance(self.name) + 20)
         rect.setWidth(width)
-        Node.setRect(self, rect)
+        super().setRect(rect)
 
     def setColor(self, c):
         self.color = QColor(c.red(), c.green(), c.blue(), 255)
@@ -55,6 +54,8 @@ class NodeGraph(Node):
             positions += [QPointF(x, y)]
             child.old_pos = child.pos()
             y += child._rect.height() + 5
+        from nodeCommand import CommandMoveNode
+
         nodeUtils.options.undoStack.push(
             CommandMoveNode(self.childs, positions)
         )

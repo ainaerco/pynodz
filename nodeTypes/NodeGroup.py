@@ -18,7 +18,7 @@ class NodeGroup(Node):
 
     def init(self, d):
         self.collapsedRect = QRectF(0, 0, 100, 25)
-        Node.init(self, d)
+        super().init(d)
 
     def setRect(self, rect):
         self.collapsedRect.setWidth(rect.width())
@@ -39,7 +39,7 @@ class NodeGroup(Node):
                 )
                 if isinstance(x, Node) and x is not self
             ]
-        Node.setRect(self, rect)
+        super().setRect(rect)
 
     def setSelected(self, selected: bool):
         if self.shadow:

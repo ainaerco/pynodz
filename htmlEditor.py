@@ -11,14 +11,27 @@ from qtpy.QtGui import (
     QFont,
     QUndoStack,
 )
-from qtpy import QtCore, QtWidgets
+from qtpy import QtCore
+from qtpy.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QFrame,
+    QFontComboBox,
+    QGroupBox,
+    QHBoxLayout,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+)
 
 import nodeUtils
 
 
-class HtmlEditor(QtWidgets.QDialog):
+class HtmlEditor(QDialog):
     def __init__(self, parent=None, d={}):
-        QtWidgets.QDialog.__init__(self, parent)
+        super().__init__(parent)
         self.node = d.get("node", None)
         if self.node:
             self.setWindowTitle("Editor - %s" % self.node.name)
@@ -26,110 +39,99 @@ class HtmlEditor(QtWidgets.QDialog):
             self.setWindowTitle("Editor")
 
         self.undoStack = QUndoStack(self)
-        layout = QtWidgets.QVBoxLayout()
+        layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        toolBox = QtWidgets.QGroupBox()
-        self.toolLayout = QtWidgets.QHBoxLayout(toolBox)
+        toolBox = QGroupBox()
+        self.toolLayout = QHBoxLayout(toolBox)
         self.toolLayout.setContentsMargins(0, 0, 0, 0)
         self.toolLayout.setSpacing(0)
         toolSize = QtCore.QSize(25, 25)
 
-        newButton = QtWidgets.QPushButton(
+        newButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.folder-open"), ""
         )
         newButton.setFlat(True)
         newButton.setFixedSize(toolSize)
         newButton.setToolTip("New scene")
 
-        saveButton = QtWidgets.QPushButton(
+        saveButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.floppy-disk"), ""
         )
         saveButton.setFlat(True)
         saveButton.setFixedSize(toolSize)
         saveButton.setToolTip("Save scene")
 
-        undoButton = QtWidgets.QPushButton(
+        undoButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.rotate-left"), ""
         )
         undoButton.setFlat(True)
         undoButton.setFixedSize(toolSize)
         undoButton.setToolTip("Undo (Ctrl+Z)")
 
-        redoButton = QtWidgets.QPushButton(
+        redoButton = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.rotate-right"), ""
         )
         redoButton.setFlat(True)
         redoButton.setFixedSize(toolSize)
         redoButton.setToolTip("Redo (Ctrl+Y)")
 
-        self.fonts = QtWidgets.QFontComboBox()
+        self.fonts = QFontComboBox()
         self.fonts.setFixedSize(QtCore.QSize(200, 25))
-        self.fonts.setFontFilters(
-            QtWidgets.QFontComboBox.FontFilter.ScalableFonts
-        )
+        self.fonts.setFontFilters(QFontComboBox.FontFilter.ScalableFonts)
 
-        # self.fonts.addItem('')
-        # for f in str(QFontDatabase().families().join("\n")).split("\n"):
-        #    self.fonts.addItem(f)
-        self.font_size = QtWidgets.QComboBox()
+        self.font_size = QComboBox()
         for i in range(8, 26, 2):
             self.font_size.addItem(str(i))
         self.font_size.setFixedSize(QtCore.QSize(40, 25))
-        self.font_size = QtWidgets.QComboBox()
+        self.font_size = QComboBox()
         for i in range(4, 26, 2):
             self.font_size.addItem(str(i))
         self.font_size.setFixedSize(QtCore.QSize(40, 25))
 
-        bold = QtWidgets.QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.bold"), ""
-        )
+        bold = QPushButton(nodeUtils.options.getAwesomeIcon("fa6s.bold"), "")
         bold.setFixedSize(toolSize)
         bold.setFlat(True)
-        italic = QtWidgets.QPushButton(
+        italic = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.italic"), ""
         )
         italic.setFixedSize(toolSize)
         italic.setFlat(True)
-        underline = QtWidgets.QPushButton(
+        underline = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.underline"), ""
         )
         underline.setFixedSize(toolSize)
         underline.setFlat(True)
-        unindent = QtWidgets.QPushButton(
+        unindent = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.outdent"), ""
         )
         unindent.setFixedSize(toolSize)
         unindent.setFlat(True)
-        indent = QtWidgets.QPushButton(
+        indent = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.indent"), ""
         )
         indent.setFixedSize(toolSize)
         indent.setFlat(True)
-        bullet = QtWidgets.QPushButton(
+        bullet = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.list-ul"), ""
         )
         bullet.setFixedSize(toolSize)
         bullet.setFlat(True)
-        number = QtWidgets.QPushButton(
+        number = QPushButton(
             nodeUtils.options.getAwesomeIcon("fa6s.list-ol"), ""
         )
         number.setFixedSize(toolSize)
         number.setFlat(True)
-        image = QtWidgets.QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.image"), ""
-        )
+        image = QPushButton(nodeUtils.options.getAwesomeIcon("fa6s.image"), "")
         image.setFixedSize(toolSize)
         image.setFlat(True)
-        table = QtWidgets.QPushButton(
-            nodeUtils.options.getAwesomeIcon("fa6s.table"), ""
-        )
+        table = QPushButton(nodeUtils.options.getAwesomeIcon("fa6s.table"), "")
         table.setFixedSize(toolSize)
         table.setFlat(True)
 
-        self.align = QtWidgets.QComboBox()
+        self.align = QComboBox()
         self.align.addItem("")
         self.align.setItemIcon(
             0, nodeUtils.options.getAwesomeIcon("fa6s.align-left")
@@ -151,7 +153,7 @@ class HtmlEditor(QtWidgets.QDialog):
             "::drop-down { width: 0px; border-style: none}"
         )
 
-        self.colors = QtWidgets.QComboBox()
+        self.colors = QComboBox()
         ncolors = 16
         ngrays = 6
         for i in range(ngrays):
@@ -174,12 +176,12 @@ class HtmlEditor(QtWidgets.QDialog):
         self.colors.setFixedSize(QtCore.QSize(44, 25))
         self.colors.setStyleSheet("background:#000000")
 
-        line1 = QtWidgets.QFrame()
-        line1.setFrameShape(QtWidgets.QFrame.Shape.VLine)
-        line1.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        line2 = QtWidgets.QFrame()
-        line2.setFrameShape(QtWidgets.QFrame.Shape.VLine)
-        line2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        line1 = QFrame()
+        line1.setFrameShape(QFrame.Shape.VLine)
+        line1.setFrameShadow(QFrame.Shadow.Sunken)
+        line2 = QFrame()
+        line2.setFrameShape(QFrame.Shape.VLine)
+        line2.setFrameShadow(QFrame.Shadow.Sunken)
 
         self.toolLayout.addWidget(newButton)
         self.toolLayout.addWidget(saveButton)
@@ -204,7 +206,7 @@ class HtmlEditor(QtWidgets.QDialog):
 
         layout.addWidget(toolBox)
 
-        self.html = QtWidgets.QTextEdit()
+        self.html = QTextEdit()
         self.html.document().setIndentWidth(20)
         self.text = d.get("text", None)
         self.f = d.get("func", None)
@@ -214,7 +216,6 @@ class HtmlEditor(QtWidgets.QDialog):
                 self.html.setPlainText(self.text)
             elif t == "html":
                 self.html.setHtml(self.text)
-        # self.html.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
 
         layout.addWidget(self.html)
 
@@ -272,11 +273,10 @@ class HtmlEditor(QtWidgets.QDialog):
                 QTextLength(QTextLength.Type.FixedLength, 170),
             ]
         )
-        # f.setColumnHeightConstraints([QTextLength(QTextLength.FixedLength,70),QTextLength(QTextLength.FixedLength,170)])
         cursor.insertTable(2, 2, f)
 
     def insertImage(self, f=None):
-        f, mask = QtWidgets.QFileDialog.getOpenFileName(
+        f, mask = QFileDialog.getOpenFileName(
             self,
             "Open File",
             "",
@@ -356,7 +356,6 @@ class HtmlEditor(QtWidgets.QDialog):
             self.colors.itemData(i, QtCore.Qt.ItemDataRole.DecorationRole)
         )
         pal.setColor(QPalette.ColorRole.ButtonText, color)
-        # self.colors.setPalette(pal)
         self.colors.setStyleSheet("background:%s" % color.name())
         cursor = self.html.textCursor()
         format = QTextCharFormat()
@@ -369,8 +368,8 @@ class HtmlEditor(QtWidgets.QDialog):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    QtWidgets.QApplication.setDoubleClickInterval(4000)
+    app = QApplication(sys.argv)
+    QApplication.setDoubleClickInterval(4000)
     win = HtmlEditor()
     win.show()
     sys.exit(app.exec())

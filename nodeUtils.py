@@ -131,7 +131,7 @@ class NodeMimeData(QMimeData):
 
 class NodesOptions(QObject):
     def __init__(self):
-        QObject.__init__(self)
+        super().__init__()
         self.undoStack = QUndoStack(self)
         self.arnold = self.loadArnoldSettings()
         self.splineStep = 20
@@ -192,9 +192,7 @@ class NodesOptions(QObject):
 
     def saveArnoldSettings(self):
         path = "arnold_settings.json"
-        js = json.dumps(
-            self.arnold, sort_keys=False, indent=4
-        )  # .decode('unicode-escape').encode('utf-8')
+        js = json.dumps(self.arnold, sort_keys=False, indent=4)
         f = open(path, "w")
         f.write(js)
         f.close()
@@ -211,11 +209,8 @@ class NodesOptions(QObject):
 
     def getIcon(self, icon, resize=True):
         if icon not in self.icons.keys():
-            # ico = QIcon(icon)
             pix = QPixmap(icon)
-            # pix = ico.pixmap(32,32)
             if pix.isNull():
-                # print "Null pixmap",icon,os.path.abspath(icon)
                 return None
             if resize:
                 pix = pix.scaled(self.iconSize, self.iconSize)
@@ -287,7 +282,7 @@ class NodesOptions(QObject):
         self.selected = []
 
     def getSelectedClass(self, c):
-        return [x for x in self.selected if issubclass(x.__class__, c)]
+        return [x for x in self.selected if isinstance(x, c)]
 
 
 options = NodesOptions()

@@ -1,17 +1,16 @@
 from qtpy.QtGui import QPainterPath, QTransform
 from qtpy.QtCore import Qt, QRectF
-from qtpy import QtWidgets
+from qtpy.QtWidgets import QFileDialog, QMenu, QWidget
 
 from .Node import Node
 from nodeParts.Parts import NodeResize, NodeInput
-from nodeCommand import CommandSetNodeAttribute
 from htmlEditor import HtmlEditor
 import nodeUtils
 
 
 class NodeBlock(Node):
     def __init__(self, d, dialog=None):
-        Node.__init__(self, d, dialog)
+        super().__init__(d, dialog)
         self.path = QPainterPath()
         self.path.addRect(0, 0, 1, 1)
 
@@ -27,7 +26,7 @@ class NodeBlock(Node):
 
     def setRect(self, rect):
 
-        Node.setRect(self, rect)
+        super().setRect(rect)
         if self.connector is not None:
             self.connector.setPos(self._rect.center().x(), self._rect.bottom())
         name_item = self.nameItem
@@ -49,9 +48,7 @@ class NodeBlock(Node):
             return
         scene = self.scene()
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         setIconAction = menu.addAction("Set icon")
         clearIconAction = menu.addAction("Clear icon")
         editNameAction = menu.addAction("Edit title")
@@ -63,7 +60,9 @@ class NodeBlock(Node):
 
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            from nodeCommand import CommandSetNodeAttribute
+
+            filename, _ = QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if filename:
@@ -71,6 +70,8 @@ class NodeBlock(Node):
                     CommandSetNodeAttribute([self], {"icon": filename})
                 )
         elif action == clearIconAction and self.icon is not None:
+            from nodeCommand import CommandSetNodeAttribute
+
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"icon": None})
             )
@@ -100,6 +101,8 @@ class NodeBlock(Node):
         elif action == editKeywordsAction:
 
             def on_keywords_edit(text):
+                from nodeCommand import CommandSetNodeAttribute
+
                 nodeUtils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}

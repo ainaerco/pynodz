@@ -1,6 +1,6 @@
 from qtpy.QtGui import QPen, QColor, QPainterPath, QTransform
 from qtpy.QtCore import Qt, QRectF, QPointF
-from qtpy import QtWidgets
+from qtpy.QtWidgets import QGraphicsItem, QMenu, QWidget
 
 import bezier
 
@@ -12,9 +12,9 @@ from math import cos, sin, atan2
 import nodeUtils
 
 
-class Connection(QtWidgets.QGraphicsItem):
+class Connection(QGraphicsItem):
     def __init__(self, d):
-        QtWidgets.QGraphicsItem.__init__(self)
+        super().__init__()
         from nodeParts.Parts import TitleItem
 
         self.p_x = []
@@ -31,7 +31,7 @@ class Connection(QtWidgets.QGraphicsItem):
         self.setAcceptHoverEvents(True)
 
     def fromDict(self, d):
-        self.parent = d["parent"]
+        self.parent_node = d["parent"]
         self.child = d["child"]
         if "id" in d.keys():
             self.id = d["id"]
@@ -42,7 +42,7 @@ class Connection(QtWidgets.QGraphicsItem):
             self.nameItem.setPlainText(d["attr"])
 
     def toDict(self):
-        res = {"parent": self.parent.id, "child": self.child.id}
+        res = {"parent": self.parent_node.id, "child": self.child.id}
         res["type"] = "Connection"
         res["name"] = self.name
         res["attr"] = self.attr
@@ -59,17 +59,22 @@ class Connection(QtWidgets.QGraphicsItem):
 
         if self.constrain:
             t = QTransform()
-            if hasattr(self.parent, "connector") and self.parent.connector:
-                p1 = t.map(self.parent.pos() + self.parent.connector.pos())
+            if (
+                hasattr(self.parent_node, "connector")
+                and self.parent_node.connector
+            ):
+                p1 = t.map(
+                    self.parent_node.pos() + self.parent_node.connector.pos()
+                )
             else:
-                p = self.parent.pos() + self.parent._rect.center()
+                p = self.parent_node.pos() + self.parent_node._rect.center()
                 t.translate(p.x(), p.y())
-                t.rotate(self.parent.rotation())
+                t.rotate(self.parent_node.rotation())
                 t.translate(-p.x(), -p.y())
                 p1 = t.map(
-                    self.parent.pos()
-                    + self.parent._rect.center()
-                    + self.parent._rect.topRight() * 0.5
+                    self.parent_node.pos()
+                    + self.parent_node._rect.center()
+                    + self.parent_node._rect.topRight() * 0.5
                 )
 
             t = QTransform()
@@ -80,7 +85,7 @@ class Connection(QtWidgets.QGraphicsItem):
             p2 = t.map(self.child.pos() + self.child._rect.topRight() * 0.5)
             self._rect = QRectF(p1, p2)
         else:
-            self._rect = QRectF(self.parent, self.child)
+            self._rect = QRectF(self.parent_node, self.child)
         a = self._rect.topLeft()
         b = self._rect.bottomRight()
 
@@ -183,9 +188,7 @@ class Connection(QtWidgets.QGraphicsItem):
         if scene is None:
             return
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         editNameAction = menu.addAction("Edit name")
         action = menu.exec(event.screenPos())
         if action == editNameAction:

@@ -4,22 +4,25 @@ from typing import cast
 
 from qtpy.QtGui import QColor, QPen, QBrush, QLinearGradient, QDrag
 from qtpy.QtCore import Qt, QRectF, QPointF, QTimer, QByteArray, QSizeF
-from qtpy import QtWidgets
+from qtpy.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QGraphicsDropShadowEffect,
+    QGraphicsPixmapItem,
+    QGraphicsWidget,
+    QMenu,
+    QWidget,
+)
 
 import nodeUtils
 from nodeUtils import NodeMimeData
 from nodeParts.Parts import TitleItem, NodeInput, NodeResize, DropDown
 from htmlEditor import HtmlEditor
-from nodeCommand import (
-    CommandMoveAnimNode,
-    CommandSetNodeAttribute,
-    CommandCreateConnection,
-)
 
 
-class Node(QtWidgets.QGraphicsWidget):
+class Node(QGraphicsWidget):
     def __init__(self, d, dialog=None):
-        QtWidgets.QGraphicsWidget.__init__(self)
+        super().__init__()
         self.dialog = dialog
 
         self.init(d)
@@ -29,7 +32,7 @@ class Node(QtWidgets.QGraphicsWidget):
         self.addExtraControls()
         self.setRect(self._rect)
         self.timer = QTimer()
-        self.timer.setInterval(QtWidgets.QApplication.startDragTime())
+        self.timer.setInterval(QApplication.startDragTime())
         self.timer.setSingleShot(True)
         self._mouseReleased = False
         self.timer.timeout.connect(self.onTimer)
@@ -86,7 +89,7 @@ class Node(QtWidgets.QGraphicsWidget):
         if self.icon:
             icon = nodeUtils.options.getIcon(self.icon)
             if icon:
-                self.iconItem = QtWidgets.QGraphicsPixmapItem(icon, self)
+                self.iconItem = QGraphicsPixmapItem(icon, self)
                 self.iconItem.setPos(5, 5)
 
         self.fromDict(d)
@@ -94,18 +97,18 @@ class Node(QtWidgets.QGraphicsWidget):
         self.setAcceptHoverEvents(True)
 
     def addShadow(self):
-        self.shadow = QtWidgets.QGraphicsDropShadowEffect()
+        self.shadow = QGraphicsDropShadowEffect()
         self.shadow.setOffset(4, 4)
         self.shadow.setBlurRadius(8)
         self.setGraphicsEffect(self.shadow)
 
     def setCollapsed(self, collapsed: bool):
         for c in self.childs:
-            if c.__class__ == Node or c.__class__ == Node:
+            if isinstance(c, Node):
                 c.setCollapsed(False)
                 c.setVisible(collapsed)
                 for con in c.connections:
-                    if con.parent != self:
+                    if con.parent_node != self:
                         con.setVisible(False)
                     else:
                         con.setVisible(collapsed)
@@ -133,6 +136,8 @@ class Node(QtWidgets.QGraphicsWidget):
             positions += [QPointF(x, y)]
             child.old_pos = child.pos()
             y += child.boundingRect().height() + 5
+        from nodeCommand import CommandMoveAnimNode
+
         nodeUtils.options.undoStack.push(
             CommandMoveAnimNode(self.childs, positions, 300, True)
         )
@@ -171,7 +176,7 @@ class Node(QtWidgets.QGraphicsWidget):
                 if scene is not None and self.iconItem is not None:
                     scene.removeItem(self.iconItem)
                 if icon:
-                    self.iconItem = QtWidgets.QGraphicsPixmapItem(icon, self)
+                    self.iconItem = QGraphicsPixmapItem(icon, self)
                     self.iconItem.setPos(5, 5)
             else:
                 z = self.iconItem
@@ -193,7 +198,7 @@ class Node(QtWidgets.QGraphicsWidget):
         res["rgb"] = str(self.color.name())
         if self.rotation() != 0:
             res["rot"] = self.rotation()
-        res["type"] = self.__class__.__name__
+        res["type"] = type(self).__name__
         if self.icon:
             res["icon"] = self.icon
         return res
@@ -315,7 +320,7 @@ class Node(QtWidgets.QGraphicsWidget):
             return childs
 
         self.alignChilds()
-        QtWidgets.QGraphicsWidget.mouseDoubleClickEvent(self, event)
+        super().mouseDoubleClickEvent(event)
 
     def onTimer(self):
         if self._mouseReleased is None:
@@ -340,7 +345,7 @@ class Node(QtWidgets.QGraphicsWidget):
 
         # Selection
         if (
-            QtWidgets.QApplication.keyboardModifiers()
+            QApplication.keyboardModifiers()
             & Qt.KeyboardModifier.ControlModifier
         ):
             if self._selected:
@@ -383,6 +388,8 @@ class Node(QtWidgets.QGraphicsWidget):
             }
             scene = self.scene()
             if scene is not None:
+                from nodeCommand import CommandCreateConnection
+
                 nodeUtils.options.undoStack.push(
                     CommandCreateConnection(scene, d)
                 )
@@ -392,16 +399,16 @@ class Node(QtWidgets.QGraphicsWidget):
             return
         scene = self.scene()
         parent = scene.parent() if scene is not None else None
-        menu = QtWidgets.QMenu(
-            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
-        )
+        menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         setIconAction = menu.addAction("Set icon")
         clearIconAction = menu.addAction("Clear icon")
         editNameAction = menu.addAction("Edit title")
         editKeywordsAction = menu.addAction("Edit keywords")
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            from nodeCommand import CommandSetNodeAttribute
+
+            filename, _ = QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
             if filename:
@@ -409,6 +416,8 @@ class Node(QtWidgets.QGraphicsWidget):
                     CommandSetNodeAttribute([self], {"icon": filename})
                 )
         elif action == clearIconAction and self.icon is not None:
+            from nodeCommand import CommandSetNodeAttribute
+
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"icon": None})
             )
@@ -420,6 +429,8 @@ class Node(QtWidgets.QGraphicsWidget):
         elif action == editKeywordsAction:
 
             def on_keywords_edit(text):
+                from nodeCommand import CommandSetNodeAttribute
+
                 nodeUtils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}
@@ -440,7 +451,7 @@ class Node(QtWidgets.QGraphicsWidget):
     def resize(self, width: float, height: float) -> None:  # type: ignore[override]
         rect = QRectF(0, 0, width, height)
         self.setRect(rect)
-        QtWidgets.QGraphicsWidget.resize(self, width, height)
+        super().resize(width, height)
 
     def paint(self, painter, option, widget=None):
         if painter is None:
