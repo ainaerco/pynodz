@@ -12,12 +12,6 @@ class NodeGraph(Node):
     def addExtraControls(self):
         pass
 
-    # def setSelected(self, state):
-    #     Node.setSelected(self, state)
-    #     print self.connections
-    #     for c in self.connections:
-    #         c.setSelected(state)
-
     def setRect(self, rect):
         fm = QFontMetrics(nodeUtils.options.titleFont)
         width = max(rect.width(), fm.horizontalAdvance(self.name) + 20)
@@ -66,7 +60,6 @@ class NodeGraph(Node):
         )
 
     def mouseDoubleClickEvent(self, event):
-        # print "mouseDoubleClickEvent"
         def get_childs(node):
             nodeList = [node]
 

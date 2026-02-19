@@ -208,7 +208,6 @@ class Bspline(object):
         k, t = self.k, self.t
         m = len(t) - 1
         n = m - k - 1
-        print(t_, t[n + 1])
         assert t[k - 1] <= t_ <= t[n + 1]  # t in [t[k - 1], t[n + 1]]
 
         X, Y, b = self.X, self.Y, self.b
@@ -216,10 +215,8 @@ class Bspline(object):
 
         for i in _n:
             b_i = b[i][k](t_)
-            print(b_i)
             x += X[i] * b_i
             y += Y[i] * b_i
-        print("end", x, y)
         return x, y
 
     def __call__(self, t_):
@@ -245,24 +242,6 @@ class Bspline(object):
         return x, y
 
     def _deboor(self):
-        # de Boor recursive algorithm
-        # S(t) = sum(b[i][k](t) * P[i] for i in range(0, n))
-        #
-        # b[i][k] = {
-        #     if k == 0:
-        #         t[i] <= t_ < t[i+1]
-        #     else:
-        #         a[i][k](t)*b[i][k-1](t)+(1-a[i+1][k](t))*b[i+1][k-1](t)
-        # }
-        #
-        # a[i][k] = {
-        #     if t[i] == t[i+k]:
-        #         0
-        #     else:
-        #         (t_-t[i])/(t[i+k]-t[i])
-        # }
-        #
-        # NOTE: for b[i][k](t), must iterate to t[:-1];
         # the number of [i, i + 1) spans in t
         k, t = self.k, self.t
         m = len(t) - 1  # iterate to t[:-1]
@@ -315,7 +294,7 @@ class Bspline(object):
         for i in _t_:
             if t[i] <= t_ < t[i + 1]:
                 break
-        assert not i < k + 1 and not i > m - k + 1  # i not in clamp
+        assert not (i < k + 1) and not (i > m - k + 1)  # i not in clamp
         Q_x, Q_y = [], []  # new control points
         # iterate over replaced control points
         # set new control points

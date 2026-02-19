@@ -15,8 +15,8 @@ def getNodeClass(x):
         NodeNote,  # noqa: F401
         NodeGraph,  # noqa: F401
         NodeBlock,  # noqa: F401
+        NodeBookmark,  # noqa: F401
     )
-    from nodeTypes.NodeBookmark import BookmarkNode  # noqa: F401
 
     return locals()[x]
 

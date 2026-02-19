@@ -48,8 +48,6 @@ class NodeControl(Node):
                     "value": self.values[key],
                 }
                 self.pinUnpin(attr, True)
-            else:
-                print("unsupported attr class", c)
 
     def addExtraControls(self):
         pass
@@ -63,13 +61,18 @@ class NodeControl(Node):
         # self.prepareGeometryChange()
         margin = self.graphicLayout.spacing()
         (left, t, r, b) = self.graphicLayout.getContentsMargins()
-        height = t
+        height = float(t) if t is not None else 0.0
         width = self._rect.width()
         for i in range(self.graphicLayout.count()):
             item = self.graphicLayout.itemAt(i)
-            height += item.rect.height() + margin
-            width = item.rect.width() + left + r
-        height += b
+            if item is None:
+                continue
+            geom = item.geometry()
+            h = geom.height() if geom.height() is not None else 0.0
+            w = geom.width() if geom.width() is not None else 0.0
+            height = height + h + margin
+            width = w + (left or 0) + (r or 0)
+        height += b if b is not None else 0
         self.resize(width, height)
         QtWidgets.QGraphicsWidget.updateGeometry(self)
 
@@ -79,20 +82,18 @@ class NodeControl(Node):
         self.values = d.get("values", {})
 
     def pinUnpin(self, attr, pinned):
-        # print self.name,'pinUnpin'
-        # nodeUtils.options.arnold = dict(mergeDicts(nodeUtils.options.arnold,{self.shader:{attr['name']:{'_pin':pinned}}}))
-        # nodeUtils.options.arnold.update({self.shader:{attr['name']:{'_pin':pinned}}})
         if attr["name"] in self.pinnedAttributes.keys():
             if not pinned:
                 self.prepareGeometryChange()
                 self.graphicLayout.removeItem(
                     self.pinnedAttributes[attr["name"]]
                 )
-                self.scene().removeItem(self.pinnedAttributes[attr["name"]])
+                scene = self.scene()
+                if scene is not None:
+                    scene.removeItem(self.pinnedAttributes[attr["name"]])
 
                 del self.pinnedAttributes[attr["name"]]
 
-                # self.setRect(self.form.boundingRect())
                 self.updateGeometry()
                 return
             else:
@@ -108,14 +109,20 @@ class NodeControl(Node):
         connector = NodeInput(self)
         connector.setRect(QRectF(-5, -5, 10, 10))
 
-        # self.setRect(self.form.boundingRect())
         self.updateGeometry()
-        p = item.pos() + self._rect.topRight() + item.rect.bottomLeft() * 0.5
+        geom = item.geometry()
+        p = item.pos() + self._rect.topRight() + geom.bottomLeft() * 0.5
 
         connector.setPos(p.x() - item.pos().x(), p.y())
 
     def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self.scene().parent())
+        if event is None:
+            return
+        scene = self.scene()
+        parent = scene.parent() if scene is not None else None
+        menu = QtWidgets.QMenu(
+            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
+        )
         addFloatControl = menu.addAction("Add Float Control")
         addVectorControl = menu.addAction("Add Vector Control")
         addStringControl = menu.addAction("Add String Control")
@@ -139,7 +146,6 @@ class NodeControl(Node):
     def fromDict(self, d):
         if "values" in d.keys():
             vs = d["values"]
-            # print "fromDict",vs
             for key in vs.keys():
                 self.values[key] = deepcopy(vs[key])
                 if key in self.pinnedAttributes.keys():
@@ -150,15 +156,10 @@ class NodeControl(Node):
     def toDict(self):
         res = Node.toDict(self)
         res["values"] = dict(self.values)
-        # print "toDict",res['values']
         return res
 
     def updateAttribute(self, name, value):
-        # if attr.value.__class__==list:
         v = {name: deepcopy(value)}
-        # else:
-        #    v = {attr.attr['name']: attr.value}
-        print(v, "updateAttribute", name)
         nodeUtils.options.undoStack.push(
             CommandSetNodeAttribute([self], {"values": v})
         )

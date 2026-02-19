@@ -21,7 +21,6 @@ class NodeNote(Node):
             self.htmlItem.setHtml(self.html)
 
         self.setRect(self._rect)
-        # self.setFlag(QtWidgets.QGraphicsItem.ItemClipsChildrenToShape)
 
     def addExtraControls(self):
         self.resizeItem = NodeResize(self, rect=QRectF(-12, -12, 12, 12))
@@ -33,8 +32,6 @@ class NodeNote(Node):
         self._rect.setHeight(
             max(nodeUtils.options.iconSize, self._rect.height())
         )
-        # self.nameItem.prepareGeometryChange()
-        # self.nameItem.setPos(self.icon and (Dialog.showIconsAction.isChecked() and nodeUtils.options.iconSize or -4)+8 or 2,nodeUtils.options.iconSize/4.0)
         if self.htmlItem:
             self.htmlItem.setTextWidth(self._rect.width())
         if self.resizeItem:
@@ -68,12 +65,16 @@ class NodeNote(Node):
         editor.show()
 
     def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self.scene().parent())
+        if event is None:
+            return
+        scene = self.scene()
+        parent = scene.parent() if scene is not None else None
+        menu = QtWidgets.QMenu(
+            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
+        )
         editNameAction = menu.addAction("Edit title")
-        # editTextAction = menu.addAction("Edit url")
-        # copyUrlAction = menu.addAction("Copy url")
         action = menu.exec(event.screenPos())
-        if action == editNameAction:
+        if action == editNameAction and self.nameItem is not None:
             self.nameItem.setTextInteractionFlags(
                 Qt.TextInteractionFlag.TextEditorInteraction
             )

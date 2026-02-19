@@ -1,4 +1,4 @@
-from qtpy.QtCore import QTimeLine, QPropertyAnimation
+from qtpy.QtCore import QTimeLine
 from qtpy.QtGui import QUndoCommand
 from qtpy import QtWidgets
 
@@ -9,33 +9,33 @@ from nodeUtils import getNodeClass
 import bezier
 
 
-class NodeAnimation(QPropertyAnimation):
+class NodeAnimation(QtWidgets.QGraphicsItemAnimation):  # type: ignore[misc]
     def __init__(self, *args):
-        QPropertyAnimation.__init__(self, *args)
-        self.opacity_points = []
+        super().__init__(*args)
+        self.opacity_points: list[tuple[float, float]] = []
         self.opacity_bezier = None
 
-    def setOpacityAt(self, t, o):
+    def setOpacityAt(self, t: float, o: float) -> None:
         self.opacity_points += [(t, o)]
         if len(self.opacity_points) > 3:
             self.opacity_bezier = bezier.Bspline(self.opacity_points)
 
-    def afterAnimationStep(self, step):
-        print(step)
-        if self.opacity_bezier:
+    def afterAnimationStep(self, step: float) -> None:
+        item = self.item()
+        if item is not None and self.opacity_bezier is not None:
             o = self.opacity_bezier(step)[1]
-            self.item().setOpacity(o)
-            for c in self.item().connections:
+            item.setOpacity(o)
+            for c in item.connections:
                 c.setOpacity(o)
+        if item is not None:
+            for c in item.connections:
+                c.prepareGeometryChange()
+                c.updatePath()
+                c.update()
+        super().afterAnimationStep(step)
 
-        for c in self.item().connections:
-            c.prepareGeometryChange()
-            c.updatePath()
-            c.update()
-        QtWidgets.QGraphicsItemAnimation.afterAnimationStep(self, step)
 
-
-class CommandMoveNode(QUndoCommand):
+class CommandMoveNode(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, pos):
         QUndoCommand.__init__(self)
         self.node_ids = [x.id for x in sel]
@@ -46,19 +46,17 @@ class CommandMoveNode(QUndoCommand):
     def undo(self):
         n = [nodeUtils.options.nodes[x] for x in self.node_ids]
         for i in range(len(n)):
-            # n[i].prepareGeometryChange()
-            n[i].setPos(self.old_positions[i])
+            n[i].setPos(self.old_positions[i].x(), self.old_positions[i].y())
             n[i].update()
 
     def redo(self):
         n = [nodeUtils.options.nodes[x] for x in self.node_ids]
         for i in range(len(n)):
-            # n[i].prepareGeometryChange()
-            n[i].setPos(self.positions[i])
+            n[i].setPos(self.positions[i].x(), self.positions[i].y())
             n[i].update()
 
 
-class CommandMoveAnimNode(QUndoCommand):
+class CommandMoveAnimNode(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, pos, time, fadeOut=False):
         QUndoCommand.__init__(self)
         self.node_ids = [x.id for x in sel]
@@ -72,7 +70,7 @@ class CommandMoveAnimNode(QUndoCommand):
         n = [nodeUtils.options.nodes[x] for x in self.node_ids]
         for i in range(len(n)):
             n[i].prepareGeometryChange()
-            n[i].setPos(self.old_positions[i])
+            n[i].setPos(self.old_positions[i].x(), self.old_positions[i].y())
 
     def redo(self):
         timeline = QTimeLine()
@@ -95,7 +93,7 @@ class CommandMoveAnimNode(QUndoCommand):
         timeline.start()
 
 
-class CommandSetNodeAttribute(QUndoCommand):
+class CommandSetNodeAttribute(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, d):
         QUndoCommand.__init__(self)
         self.node_ids = [x.id for x in sel]
@@ -137,7 +135,7 @@ class CommandSetNodeAttribute(QUndoCommand):
                 node.fromDict(self.dict)
 
 
-class CommandSetColor(QUndoCommand):
+class CommandSetColor(QUndoCommand):  # type: ignore[misc]
     def __init__(self, sel, color):
         QUndoCommand.__init__(self)
         self.node_ids = [x.id for x in sel]
@@ -157,13 +155,13 @@ class CommandSetColor(QUndoCommand):
             n.setColor(self.color)
 
 
-class CommandCreateNode(QUndoCommand):
+class CommandCreateNode(QUndoCommand):  # type: ignore[misc]
     def __init__(self, dialog, d):
         QUndoCommand.__init__(self)
         self.dialog = dialog
         self.dict = d
         if "name" not in self.dict.keys():
-            print("CommandCreateNode name not specified", d)
+            raise ValueError("CommandCreateNode 'name' not specified")
         if "id" not in d.keys():
             nodeUtils.options.addId()
             self.dict["id"] = nodeUtils.options.ids
@@ -188,17 +186,17 @@ class CommandCreateNode(QUndoCommand):
         self.dialog.scene.addItem(n)
 
 
-class CommandCreateConnection(QUndoCommand):
+class CommandCreateConnection(QUndoCommand):  # type: ignore[misc]
     def __init__(self, scene, d):
         QUndoCommand.__init__(self)
         self.scene = scene
         self.dict = d
         if "name" not in self.dict.keys():
-            print("CommandCreateNode name not specified", d)
+            raise ValueError("CommandCreateNode 'name' not specified")
         if "parent" not in self.dict.keys():
-            print("CommandCreateNode parent not specified", d)
+            raise ValueError("CommandCreateNode 'parent' not specified")
         if "child" not in self.dict.keys():
-            print("CommandCreateNode child not specified", d)
+            raise ValueError("CommandCreateNode 'child' not specified")
         if "id" not in d.keys():
             nodeUtils.options.addId()
             self.dict["id"] = nodeUtils.options.ids
@@ -228,10 +226,7 @@ class CommandCreateConnection(QUndoCommand):
         d["child"] = nodeUtils.options.nodes[self.dict["child"]]
         parent = d["parent"]
         child = d["child"]
-        # print parent.name,child.name
-        c = Connection(
-            d
-        )  # {'parent': parent, 'child': child, 'id': self.dict['id']})
+        c = Connection(d)
         nodeUtils.options.addConnection(c.id, c)
         parent.childs += [child]
         parent.connections += [c]
@@ -239,7 +234,7 @@ class CommandCreateConnection(QUndoCommand):
         self.scene.addItem(c)
 
 
-class CommandDeleteConnections(QUndoCommand):
+class CommandDeleteConnections(QUndoCommand):  # type: ignore[misc]
     def __init__(self, scene, conns):
         QUndoCommand.__init__(self)
         self.scene = scene
@@ -248,7 +243,6 @@ class CommandDeleteConnections(QUndoCommand):
         self.setText("delete connection")
 
     def undo(self):
-        # global nodeUtils.options.connections
         for i in range(len(self.conn_ids)):
             parent = nodeUtils.options.nodes[self.saved_conns[i]["parent"]]
             child = nodeUtils.options.nodes[self.saved_conns[i]["child"]]
@@ -262,7 +256,6 @@ class CommandDeleteConnections(QUndoCommand):
             self.scene.addItem(c)
 
     def redo(self):
-        # global nodeUtils.options.connections
         self.saved_conns = []
         conns = [nodeUtils.options.connections[x] for x in self.conn_ids]
         for c in conns:
@@ -274,7 +267,7 @@ class CommandDeleteConnections(QUndoCommand):
             self.scene.removeItem(c)
 
 
-class CommandDeleteNodes(QUndoCommand):
+class CommandDeleteNodes(QUndoCommand):  # type: ignore[misc]
     def __init__(self, dialog, nodes):
         QUndoCommand.__init__(self)
         self.node_ids = [x.id for x in nodes]
@@ -284,7 +277,6 @@ class CommandDeleteNodes(QUndoCommand):
         self.setText("delete node")
 
     def undo(self):
-        # global nodeUtils.options.connections
         for n in self.saved_nodes:
             node = getNodeClass(n["type"])(n, self.dialog)
             node.setPos(n["posx"], n["posy"])
@@ -305,17 +297,13 @@ class CommandDeleteNodes(QUndoCommand):
             self.dialog.scene.addItem(c)
 
     def redo(self):
-        # global nodeUtils.options.connections
         self.saved_conns = []
         self.saved_nodes = []
         ns = [nodeUtils.options.nodes[x] for x in self.node_ids]
         for n in ns:
-            # ############# setCollapsed crashes on delete node
             if n.__class__.__name__ == "Node" and n.collapsed:
                 n.setCollapsed(True)
-            # print "delete node",n
             for c in n.connections:
-                # print "delete connection",c,c.child,c.parent
                 self.saved_conns += [c.toDict()]
                 listRemove(c.child.connections, c)
                 listRemove(c.parent.connections, c)

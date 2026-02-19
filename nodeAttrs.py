@@ -312,7 +312,7 @@ class NodeAttr(QtWidgets.QGraphicsWidget):
         self.setZValue(1)
         self.attr = attr
         self.options = options
-        self.type = attr["type"]
+        self._type = attr["type"]
         if isinstance(attr["default"], list):
             self._value = deepcopy(attr["default"])
         else:
@@ -356,22 +356,16 @@ class NodeAttr(QtWidgets.QGraphicsWidget):
         if _is_node_shader(self.parent()):
             self.setAcceptDrops(True)
 
-    # def boundingRect(self):
-    #    return self.rect
-
     def dragEnterEvent(self, event):
         event.accept()
 
     def dragMoveEvent(self, event):
         event.accept()
-        # print 'dragMoveEvent'
 
     def dropEvent(self, event):
         mime = event.mimeData()
         if not mime.hasFormat("node/connect"):
             return
-        # print self.__class__!=NodePanel
-        print(self, mime.hasFormat("node/connect"), mime.getObject())
         self.setConnected(True)
         event.accept()
         self.update()
@@ -1276,17 +1270,11 @@ class NodeAttrArray(NodeAttr):
         self.prepareGeometryChange()
         while len(self.items) > 0:
             self.removeItem()
-        # QtWidgets.QGraphicsWidget.updateGeometry(self)
 
         if not self._value:
             return
         if not isinstance(self._value, list) or len(self._value) == 0:
-            print("Undefined value for array attribute", self._value)
             return
-            # self.resize(self.rect.width(),self.rect.height())
-            # QtWidgets.QGraphicsWidget.updateGeometry(self)
-        # print 'array  @value.setter', self._value
-        # self.prepareGeometryChange()
         for d in self._value:
             self.addItem({"default": deepcopy(d)})
 
@@ -1306,17 +1294,13 @@ class NodeAttrArray(NodeAttr):
         d["type"] = typ
         clas = getAttrByType(typ)
         if clas is None:
-            print("No attr for %s" % typ)
             return
         if "default" not in d:
             default = getAttrDefault(typ)
 
             if default is None:
-                print("No default for %s" % typ)
                 return
-            # print 'getAttrDefault',default
             d["default"] = deepcopy(default)
-        # print 'addItem',d
         n = clas(self, self.options, d)
 
         self.items += [n]
@@ -1438,7 +1422,6 @@ class SplinePoint(QtWidgets.QGraphicsItem):
         return p
 
     def mousePressEvent(self, event):
-        print("her")
         if event.button() != Qt.MouseButton.LeftButton:
             event.ignore()
             return
@@ -1447,7 +1430,6 @@ class SplinePoint(QtWidgets.QGraphicsItem):
         mime.setData("spline/move", QByteArray())
         mime.setObject(self)
         drag.setMimeData(mime)
-        print("her1")
         drag.exec(Qt.DropAction.MoveAction)
         event.accept()
 

@@ -35,11 +35,8 @@ class Connection(QtWidgets.QGraphicsItem):
         self.child = d["child"]
         if "id" in d.keys():
             self.id = d["id"]
-        # else:
-        #     print 'WARNING: id is empty'
         self.name = d.get("name", "")
         self.constrain = d.get("constrain", True)
-        # self.nameItem.setPlainText(self.name)
         self.attr = d.get("attr", "")
         if self.attr:
             self.nameItem.setPlainText(d["attr"])
@@ -123,7 +120,6 @@ class Connection(QtWidgets.QGraphicsItem):
         li = []
         for i in range(len(self.p_x)):
             li += [self.p_x[i]] + [self.p_y[i]]
-        print(li)
         return
         w = pybezier.Spline(li)
         li = w.interpolate(4)
@@ -165,23 +161,31 @@ class Connection(QtWidgets.QGraphicsItem):
     def boundingRect(self):
         return self.path.controlPointRect()
 
-    def setSelected(self, state):
-        if state:
+    def setSelected(self, selected: bool):
+        if selected:
             self.pen = QPen(QColor(250, 200, 70), 1.3)
         else:
             self.pen = QPen(Qt.GlobalColor.black, 1.3)
         self.update()
 
-    def paint(self, painter, option, widget):
+    def paint(self, painter, option, widget=None):
+        if painter is None:
+            return
         painter.setPen(self.pen)
         painter.drawPath(self.path)
         painter.drawPath(self.arrow1)
         painter.drawPath(self.arrow2)
-        # for i in range(len(self.p_x)):
-        #      painter.drawEllipse(QPointF(self.p_x[i],self.p_y[i]),4,4)
 
     def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self.scene().parent())
+        if event is None:
+            return
+        scene = self.scene()
+        if scene is None:
+            return
+        parent = scene.parent() if scene is not None else None
+        menu = QtWidgets.QMenu(
+            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
+        )
         editNameAction = menu.addAction("Edit name")
         action = menu.exec(event.screenPos())
         if action == editNameAction:

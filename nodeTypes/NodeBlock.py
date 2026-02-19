@@ -28,24 +28,30 @@ class NodeBlock(Node):
     def setRect(self, rect):
 
         Node.setRect(self, rect)
-        # self.nameItem.prepareGeometryChange()
-        if self.connector:
+        if self.connector is not None:
             self.connector.setPos(self._rect.center().x(), self._rect.bottom())
-        if self.nameItem:
-            self.nameItem.setPos(
-                rect.center().x() - self.nameItem.boundingRect().width() * 0.5,
-                rect.center().y() - self.nameItem.boundingRect().height() * 0.5,
+        name_item = self.nameItem
+        if name_item is not None:
+            name_item.setPos(
+                rect.center().x() - name_item.boundingRect().width() * 0.5,
+                rect.center().y() - name_item.boundingRect().height() * 0.5,
             )
-        if self.iconItem:
-            self.iconItem.prepareGeometryChange()
-            self.iconItem.setPos(
-                self.nameItem.pos().x()
-                - self.nameItem.boundingRect().width() * 0.5,
-                self.nameItem.pos().y(),
+        icon_item = self.iconItem
+        if icon_item is not None and name_item is not None:
+            icon_item.prepareGeometryChange()
+            icon_item.setPos(
+                name_item.pos().x() - name_item.boundingRect().width() * 0.5,
+                name_item.pos().y(),
             )
 
     def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self.scene().parent())
+        if event is None:
+            return
+        scene = self.scene()
+        parent = scene.parent() if scene is not None else None
+        menu = QtWidgets.QMenu(
+            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
+        )
         setIconAction = menu.addAction("Set icon")
         clearIconAction = menu.addAction("Clear icon")
         editNameAction = menu.addAction("Edit title")
@@ -57,19 +63,18 @@ class NodeBlock(Node):
 
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            f, _ = QtWidgets.QFileDialog.getOpenFileName(
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
-            if f:
-                print(f)
+            if filename:
                 nodeUtils.options.undoStack.push(
-                    CommandSetNodeAttribute([self], {"icon": f})
+                    CommandSetNodeAttribute([self], {"icon": filename})
                 )
         elif action == clearIconAction and self.icon is not None:
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute([self], {"icon": None})
             )
-        elif action == editNameAction:
+        elif action == editNameAction and self.nameItem is not None:
             self.nameItem.setTextInteractionFlags(
                 Qt.TextInteractionFlag.TextEditorInteraction
             )
@@ -94,7 +99,7 @@ class NodeBlock(Node):
 
         elif action == editKeywordsAction:
 
-            def f(text):
+            def on_keywords_edit(text):
                 nodeUtils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}
@@ -106,7 +111,7 @@ class NodeBlock(Node):
                 {
                     "node": self,
                     "text": self.keywords,
-                    "func": f,
+                    "func": on_keywords_edit,
                     "type": "text",
                 },
             )
@@ -115,13 +120,7 @@ class NodeBlock(Node):
     def paint(self, painter, option, widget=None):
         painter.setBrush(self.brush)
         painter.setPen(self.pen)
-        # painter.drawRoundedRect(self.rect, nodeUtils.options.nodeRadius, nodeUtils.options.nodeRadius)
-
-        # c = QColor(self.color)
-        # c.setRgb(min(255, c.red() * 0.8), min(255, c.green() * 0.8), min(255, c.blue() * 0.8))
-        # painter.setPen(QPen(c, 1))
         t = QTransform()
         t.scale(self._rect.width(), self._rect.height())
 
         painter.drawPath(t.map(self.path))
-        # painter.drawRoundedRect(r, nodeUtils.options.nodeRadius - 1, nodeUtils.options.nodeRadius - 1)

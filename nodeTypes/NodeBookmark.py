@@ -12,11 +12,10 @@ icon_size = 24
 ICONS = {}
 
 
-class BookmarkNode(Node):
+class NodeBookmark(Node):
     def __init__(self, d, dialog=None):
         super().__init__(d, dialog)
 
-        # self.nameItem = QGraphicsTextEditItem(self.name, self, 'name')
         self.url = d.get("url")
         self.urlItem = TitleItem(self.url, self, "url")
         font = QFont()
@@ -24,7 +23,7 @@ class BookmarkNode(Node):
         self.urlItem.setFont(font)
         self.urlItem.setDefaultTextColor(QColor(25, 25, 210))
 
-        if self.icon is None and self.url:
+        if self.icon is None and self.url and self.dialog is not None:
             url = QUrl(self.url)
             fi = QFileInfo(url.toLocalFile())
             typ = self.dialog.systemIcons().type(fi)
@@ -46,38 +45,15 @@ class BookmarkNode(Node):
                 self.iconItem.setPos(5, 5)
 
         self.setRect(self._rect)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemClipsChildrenToShape)
+        self.setFlag(
+            QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape
+        )
 
     def addExtraControls(self):
         self.resizeItem = NodeResize(self, rect=QRectF(-12, -12, 12, 12))
         self.resizeItem.hide()
 
-    # def setRect(self, rect):
-    #     minx = icon_size + 10
-    #     miny = minx + ((self.dialog.showUrlsAction.isChecked() and self.dialog.showNamesAction.isChecked()) and 10 or 0)
-    #     maxy = -miny
-    #     minmaxRect = QRectF(minx, miny, 256, maxy)
-    #     self._rect = rect
-    #     self._rect.setWidth(max(minmaxRect.left(), min(self._rect.width(), minmaxRect.right())))
-    #     self._rect.setHeight(max(minmaxRect.top(), min(self._rect.height(), minmaxRect.bottom())))
-
-    #     self.nameItem.prepareGeometryChange()
-    #     self.nameItem.setPos(self.icon and (self.dialog.showIconsAction.isChecked() and icon_size or -4) + 8 or 2,
-    #                          icon_size / 4.0)
-    #     if self.url:
-    #         self.urlItem.prepareGeometryChange()
-    #         if self.dialog.showUrlsAction.isChecked() and not self.dialog.showNamesAction.isChecked() and self.dialog.showIconsAction.isChecked():
-    #             self.urlItem.setPos(icon_size + 8, icon_size / 4)
-    #         else:
-    #             self.urlItem.setPos(0,
-    #                                 self.dialog.showIconsAction.isChecked() and icon_size or 0 + self.dialog.showNamesAction.isChecked() and icon_size or 0)
-    #     if self.resize:
-    #         self.resize.prepareGeometryChange()
-    #         self.resize.setPos(self._rect.right(), self._rect.bottom())
-    #     self.setColor(self.color)
-
     def fromDict(self, d):
-        print("fromDict", d)
         Node.fromDict(self, d)
         if "url" in d.keys():
             self.url = d["url"]
@@ -88,7 +64,6 @@ class BookmarkNode(Node):
         res = Node.toDict(self)
         if self.url is not None:
             res["url"] = self.url
-        print("toDict", res)
         return res
 
     def mouseDoubleClickEvent(self, event):
@@ -98,7 +73,13 @@ class BookmarkNode(Node):
             self.alignChilds()
 
     def contextMenuEvent(self, event):
-        menu = QtWidgets.QMenu(self.scene().parent())
+        if event is None:
+            return
+        scene = self.scene()
+        parent = scene.parent() if scene is not None else None
+        menu = QtWidgets.QMenu(
+            parent=parent if isinstance(parent, QtWidgets.QWidget) else None
+        )
         setIconAction = menu.addAction("Set icon")
         editNameAction = menu.addAction("Edit title")
         editUrlAction = menu.addAction("Edit url")
@@ -106,29 +87,30 @@ class BookmarkNode(Node):
         editKeywordsAction = menu.addAction("Edit keywords")
         action = menu.exec(event.screenPos())
         if action == setIconAction:
-            f, mask = QtWidgets.QFileDialog.getOpenFileName(
+            filename, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self.dialog, "Open File", "", "Icon Files (*.jpg *.png *.ico)"
             )
-            if f:
-                print(f)
+            if filename:
                 nodeUtils.options.undoStack.push(
-                    CommandSetNodeAttribute([self], {"icon": f})
+                    CommandSetNodeAttribute([self], {"icon": filename})
                 )
-        elif action == editNameAction:
+        elif action == editNameAction and self.nameItem is not None:
             self.nameItem.setTextInteractionFlags(
                 Qt.TextInteractionFlag.TextEditorInteraction
             )
             self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)
-        elif action == editUrlAction:
+        elif action == editUrlAction and self.urlItem is not None:
             self.urlItem.setTextInteractionFlags(
                 Qt.TextInteractionFlag.TextEditorInteraction
             )
             self.urlItem.setFocus(Qt.FocusReason.MouseFocusReason)
-        elif action == copyUrlAction:
-            QtWidgets.QApplication.clipboard().setText(self.url)
+        elif action == copyUrlAction and self.url is not None:
+            clipboard = QtWidgets.QApplication.clipboard()
+            if clipboard is not None:
+                clipboard.setText(self.url)
         elif action == editKeywordsAction:
 
-            def f(text):
+            def on_keywords_edit(text):
                 nodeUtils.options.undoStack.push(
                     CommandSetNodeAttribute(
                         [self], {"keywords": "%s" % text.toPlainText()}
@@ -140,7 +122,7 @@ class BookmarkNode(Node):
                 {
                     "node": self,
                     "text": self.keywords,
-                    "func": f,
+                    "func": on_keywords_edit,
                     "type": "text",
                 },
             )

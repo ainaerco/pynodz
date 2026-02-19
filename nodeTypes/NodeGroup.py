@@ -14,10 +14,6 @@ class NodeGroup(Node):
         self.setZValue(0)
 
     def addExtraControls(self):
-        # self.resizeItem = NodeResize(self, rect=QRectF(-12, -12, 12, 12))
-        # self.resizeItem.hide()
-        # self.dropdown = DropDown(self,nodeUtils.options,'resources/icons/dropdown_arrows.png')
-        # if self.collapsed == True: self.dropdown.setState(True)
         Node.addExtraControls(self)
 
     def init(self, d):
@@ -26,7 +22,8 @@ class NodeGroup(Node):
 
     def setRect(self, rect):
         self.collapsedRect.setWidth(rect.width())
-        if self.scene():
+        scene = self.scene()
+        if scene is not None:
             rect = QRectF(
                 self.pos().x(),
                 self.pos().y(),
@@ -35,12 +32,12 @@ class NodeGroup(Node):
             )
             self.childs = [
                 x
-                for x in self.scene().items(
+                for x in scene.items(
                     rect,
                     Qt.ItemSelectionMode.IntersectsItemShape,
                     Qt.SortOrder.DescendingOrder,
                 )
-                if issubclass(x.__class__, Node) and x != self
+                if isinstance(x, Node) and x is not self
             ]
         Node.setRect(self, rect)
 
@@ -55,17 +52,6 @@ class NodeGroup(Node):
                 self.pen = QPen(Qt.GlobalColor.black, 1.5)
             else:
                 self.pen = QPen(QColor(0, 0, 0, 0), 0)
-
-    def setCollapsed(self, collapsed: bool):
-        # if not collapsed and self.scene():
-        #     self.childs = [x for x in self.scene().items(self.pos().x(),self.pos().y(),
-        #     self._rect.width(),self._rect.height(), Qt.IntersectsItemShape, Qt.DescendingOrder) if issubclass(x.__class__,Node) and x!=self]
-        # if self.collapsed is collapsed:
-        #     self.prepareGeometryChange()
-        #     self.rect,self.collapsedRect = self.collapsedRect,self.rect
-        #     self.resize(self._rect.width(), self._rect.height())
-        #     self.update()
-        Node.setCollapsed(self, collapsed)
 
     def setColor(self, c):
         self.color = QColor(c.red(), c.green(), c.blue(), 30)
@@ -91,7 +77,7 @@ class NodeGroup(Node):
         painter.setBrush(self.brush)
         painter.setPen(self.pen)
         painter.drawRoundedRect(
-            self.rect,
+            self._rect,
             nodeUtils.options.nodeRadius,
             nodeUtils.options.nodeRadius,
         )

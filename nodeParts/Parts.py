@@ -14,7 +14,7 @@ RESIZE_SVG = QSvgRenderer("resources/resize.svg")
 class TitleItem(QtWidgets.QGraphicsTextItem):
     def __init__(self, text, parent, attr, title=False):
         QtWidgets.QGraphicsTextItem.__init__(self, text, parent)
-        self.setFocus(Qt.MouseFocusReason)
+        self.setFocus(Qt.FocusReason.MouseFocusReason)
         self.parent = parent
         self.attr = attr
         self.setFont(nodeUtils.options.titleFont)
@@ -29,12 +29,11 @@ class TitleItem(QtWidgets.QGraphicsTextItem):
             format = QTextCharFormat()
             format.setTextOutline(pen)
             cursor = QTextCursor(self.document())
-            cursor.select(QTextCursor.Document)
+            cursor.select(QTextCursor.SelectionType.Document)
             cursor.mergeCharFormat(format)
-            # self.setFlags(QtWidgets.QGraphicsItem.ItemClipsToShape)
 
     def keyPressEvent(self, event):
-        if event.key() != Qt.Key_Return:
+        if event is not None and event.key() != Qt.Key.Key_Return:
             QtWidgets.QGraphicsTextItem.keyPressEvent(self, event)
         else:
             nodeUtils.options.undoStack.push(
@@ -42,16 +41,21 @@ class TitleItem(QtWidgets.QGraphicsTextItem):
                     [self.parent], {self.attr: self.toPlainText()}
                 )
             )
-            self.setTextInteractionFlags(Qt.NoTextInteraction)
+            self.setTextInteractionFlags(
+                Qt.TextInteractionFlag.NoTextInteraction
+            )
 
     def focusOutEvent(self, event):
-        if Qt.TextEditorInteraction == self.textInteractionFlags():
+        if (
+            Qt.TextInteractionFlag.TextEditorInteraction
+            == self.textInteractionFlags()
+        ):
             nodeUtils.options.undoStack.push(
                 CommandSetNodeAttribute(
                     [self.parent], {self.attr: self.toPlainText()}
                 )
             )
-        self.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         self.textCursor().clearSelection()
         QtWidgets.QGraphicsTextItem.focusOutEvent(self, event)
 
@@ -60,36 +64,38 @@ class NodeInput(QtWidgets.QGraphicsRectItem):
     def __init__(self, parent, type=None):
         QtWidgets.QGraphicsRectItem.__init__(self, parent)
         self.parent = parent
-        self.type = None
+        self._type = None
         self.setType(type)
-        self.brush = QBrush(1)
-        self.pen = QPen(Qt.black, 0.3)
+        self._brush = QBrush(1)
+        self._pen = QPen(Qt.GlobalColor.black, 0.3)
 
     def setType(self, type):
-        self.type = type
+        self._type = type
         if type and type in nodeUtils.options.typeColors.keys():
-            self.brush.setColor(nodeUtils.options.typeColors[type])
+            self._brush.setColor(nodeUtils.options.typeColors[type])
         self.update()
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.LeftButton:
+        if event is None:
+            return
+        if event.button() != Qt.MouseButton.LeftButton:
             event.ignore()
             return
-        # nodeUtils.options.clearSelection()
 
         drag = QDrag(event.widget())
         mime = NodeMimeData()
         mime.setData("node/connect", QByteArray())
         mime.setObject(self.parentItem())
         drag.setMimeData(mime)
-        # self.parent.connector = self
-        cursor = QCursor(Qt.ArrowCursor)
-        drag.setDragCursor(cursor.pixmap(), Qt.CopyAction)
-        drag.exec(Qt.CopyAction)
+        cursor = QCursor(Qt.CursorShape.ArrowCursor)
+        drag.setDragCursor(cursor.pixmap(), Qt.DropAction.CopyAction)
+        drag.exec(Qt.DropAction.CopyAction)
 
     def paint(self, painter, option, widget=None):
-        painter.setBrush(self.brush)
-        painter.setPen(self.pen)
+        if painter is None:
+            return
+        painter.setBrush(self._brush)
+        painter.setPen(self._pen)
         painter.drawEllipse(self.boundingRect())
 
 
@@ -98,36 +104,21 @@ class NodeResize(QGraphicsSvgItem):
         QGraphicsSvgItem.__init__(self, node)
         self.node = node
         self.setSharedRenderer(RESIZE_SVG)
-        # self.setElementId("layer1")
-        # self.rect = kwargs['rect']
-        # self.pen = QPen(QColor(0, 0, 0), 2)
-
-    # def boundingRect(self):
-    #     return self.rect
-
-    # def paint(self, painter, option, widget):
-    #     path = QPainterPath()
-    #     path.moveTo(self.rect.topRight())
-    #     path.lineTo(self.rect.bottomLeft())
-    #     painter.drawPath(path)
-    #     path.moveTo(self.rect.left() + 4, self.rect.bottom())
-    #     path.lineTo(self.rect.right(), self.rect.top() + 4)
-    #     painter.setPen(self.pen)
-    #     painter.drawPath(path)
 
     def mousePressEvent(self, event):
-        if event.button() != Qt.LeftButton:
+        if event is None:
+            return
+        if event.button() != Qt.MouseButton.LeftButton:
             event.ignore()
             return
         nodeUtils.options.setSelection([self.node])
         drag = QDrag(event.widget())
         mime = NodeMimeData()
-        # data = QByteArray("%d" % id(self.node))
         data = QByteArray()
         mime.setData("node/resize", data)
         mime.setObject(self.node)
         drag.setMimeData(mime)
-        drag.exec(Qt.MoveAction)
+        drag.exec(Qt.DropAction.MoveAction)
 
 
 class DropDown(QtWidgets.QGraphicsPixmapItem):
@@ -135,17 +126,18 @@ class DropDown(QtWidgets.QGraphicsPixmapItem):
         QtWidgets.QGraphicsPixmapItem.__init__(
             self, options.getIcon(pixmap), parent
         )
-        # self.rect = QRectF(0, 0, options.iconSize * 0.8, options.iconSize * 0.8)
-        # self.pen = QPen(Qt.black, 1)
-        # self.brush = QBrush(QColor(0, 0, 0, 120))
         self.state = False
         self.parent = parent
-        self.setShapeMode(QtWidgets.QGraphicsPixmapItem.BoundingRectShape)
+        self.setShapeMode(
+            QtWidgets.QGraphicsPixmapItem.ShapeMode.BoundingRectShape
+        )
 
     def setState(self, state):
         self.state = state
         self.parent.setCollapsed(not state)
 
     def mousePressEvent(self, event):
-        if event.buttons() & Qt.LeftButton:
+        if event is None:
+            return
+        if event.buttons() & Qt.MouseButton.LeftButton:
             self.setState(not self.state)

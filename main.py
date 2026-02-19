@@ -51,7 +51,7 @@ from nodeCommand import (
 )
 from nodeParts.Connection import Connection
 
-from nodeTypes import Node, NodeGroup, NodeShader, BookmarkNode
+from nodeTypes import Node, NodeGroup, NodeShader, NodeBookmark
 
 import urllib
 import urllib.request
@@ -123,7 +123,6 @@ def download_icon(soup, url):
             "User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7"
         }
         if not os.path.isfile(icon_path):
-            print("downloading icon...", icon_abs_link)
             try:
                 request = urllib.request.Request(icon_abs_link, None, headers)
                 icon = urllib.request.urlopen(request, timeout=10)
@@ -132,7 +131,6 @@ def download_icon(soup, url):
                 icon_abs_link = urllib.parse.urljoin(
                     url, "/" + icon_link["href"]
                 )
-                print(icon_abs_link)
                 request = urllib.request.Request(icon_abs_link, None, headers)
                 icon = urllib.request.urlopen(request, timeout=10)
             with open(icon_path, "wb") as f:
@@ -392,7 +390,7 @@ class NodeDialog(QtWidgets.QWidget):
 
         self.layout.setMenuBar(menuBar)
         self.recentFiles = []
-        self.settings = QSettings("BookmarkNode Editor", "Zhuk")
+        self.settings = QSettings("NodeBookmark Editor", "Zhuk")
 
         shortcut = QtWidgets.QShortcut(QKeySequence("Del"), self)
         shortcut.activated.connect(self.delete)
@@ -623,24 +621,24 @@ class NodeDialog(QtWidgets.QWidget):
     def showIcons(self, checked):
         if checked:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == BookmarkNode and n.icon is not None:
+                if n.__class__ == NodeBookmark and n.icon is not None:
                     n.iconItem.setVisible(True)
                     n.setRect(n.rect)
         else:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == BookmarkNode and n.icon is not None:
+                if n.__class__ == NodeBookmark and n.icon is not None:
                     n.iconItem.hide()
                     n.setRect(n.rect)
 
     def showNames(self, checked):
         if checked:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == BookmarkNode:
+                if n.__class__ == NodeBookmark:
                     n.nameItem.setVisible(True)
                     n.setRect(n.rect)
         else:
             for n in nodeUtils.options.nodes.values():
-                if n.__class__ == BookmarkNode:
+                if n.__class__ == NodeBookmark:
                     n.nameItem.hide()
                     n.setRect(n.rect)
 
@@ -743,17 +741,16 @@ class NodeDialog(QtWidgets.QWidget):
 
     def addBookmark(self, d):
         url = d["url"]
-        print(url)
         req = urllib.request.Request(url, headers=user_agent)
         response = urllib.request.urlopen(req, timeout=10)
         page = response.read()
         soup = BeautifulSoup(page)
         page = page.lower()
-        d["type"] = "BookmarkNode"
+        d["type"] = "NodeBookmark"
         if soup.title:
             d["name"] = soup.title.string
         else:
-            d["name"] = "BookmarkNode"
+            d["name"] = "NodeBookmark"
         keywords = [
             x.get("content")
             for x in soup.find_all("meta", attrs={"name": "keywords"})
@@ -905,7 +902,6 @@ class NodeDialog(QtWidgets.QWidget):
             f.close()
 
             nodeUtils.options.undoStack.clear()
-            print(self.filename + " saved successfully")
         except Exception as e:
             messageBox = QtWidgets.QMessageBox()
             messageBox.critical(self, "Error", "An error has occured !\n%s" % e)
@@ -913,15 +909,15 @@ class NodeDialog(QtWidgets.QWidget):
 
     def saveFileAs(self):
         self.filename, pattern = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save File", "", "BookmarkNode Files (*.nod)"
+            self, "Save File", "", "NodeBookmark Files (*.nod)"
         )
         if self.filename:
             self.saveFile()
-            self.setWindowTitle("BookmarkNode Editor - %s" % self.filename)
+            self.setWindowTitle("NodeBookmark Editor - %s" % self.filename)
             nodeUtils.options.undoStack.clear()
 
     def clear(self):
-        self.setWindowTitle("BookmarkNode Editor")
+        self.setWindowTitle("NodeBookmark Editor")
         # global connections
 
         nodeUtils.options.selected = []
@@ -1371,7 +1367,6 @@ class View(QtWidgets.QGraphicsView):
             # self.viewport().update()
             return
         elif mime.hasFormat("node/connect"):
-            print("node/connect")
             item = mime.getObject()
             s = self.items(event.pos())
             d = {"name": "Connection", "parent": item.id, "child": s.id}
@@ -1404,7 +1399,7 @@ class View(QtWidgets.QGraphicsView):
             d["type"] = "Node"
             d["name"] = "Node"
         elif action == newBookmarkAction:
-            d["type"] = "BookmarkNode"
+            d["type"] = "NodeBookmark"
             d["name"] = "Bookmark"
         elif action == newNoteAction:
             d["type"] = "NodeNote"
@@ -1486,7 +1481,6 @@ callGraph = None
 
 
 def str_to_obj(astr):
-    # print('processing %s'%astr)
     try:
         return globals()[astr]
     except KeyError:
@@ -1685,8 +1679,8 @@ class CallDialog(QtWidgets.QDialog):
                 stdout=subprocess.PIPE,
                 shell=True,
             )
-        except Exception as e:
-            print("Exception", e, command)
+        except Exception:
+            pass
 
     def timerEvent(self):
         if not self.callGraph:
