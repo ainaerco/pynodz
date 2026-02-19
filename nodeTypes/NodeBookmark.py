@@ -17,7 +17,7 @@ class NodeBookmark(Node):
         super().__init__(d, dialog)
 
         self.url = d.get("url")
-        self.urlItem = TitleItem(self.url, self, "url")
+        self.urlItem = TitleItem(self.url or "", self, "url")
         font = QFont()
         font.setUnderline(True)
         self.urlItem.setFont(font)
@@ -44,6 +44,11 @@ class NodeBookmark(Node):
                 self.iconItem = QtWidgets.QGraphicsPixmapItem(pix, self)
                 self.iconItem.setPos(5, 5)
 
+        # Ensure height fits title row + small gap + URL row (avoid clipping)
+        opts_icon_size = nodeUtils.options.iconSize
+        min_height = opts_icon_size + 4 + 20  # title row + gap + url line
+        if self._rect.height() < min_height:
+            self._rect = QRectF(0, 0, self._rect.width(), min_height)
         self.setRect(self._rect)
         self.setFlag(
             QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape
@@ -52,6 +57,22 @@ class NodeBookmark(Node):
     def addExtraControls(self):
         self.resizeItem = NodeResize(self, rect=QRectF(-12, -12, 12, 12))
         self.resizeItem.hide()
+
+    def setRect(self, rect):
+        super().setRect(rect)
+        if self.urlItem:
+            icon_size = nodeUtils.options.iconSize
+            # One title row + small gap (base Node uses 2*icon_size; we use less)
+            url_gap = 4
+            if self.dialog:
+                show_icons = self.dialog.showIconsAction.isChecked()
+                show_names = self.dialog.showNamesAction.isChecked()
+                first_row = icon_size if (show_icons or show_names) else 0
+            else:
+                first_row = icon_size
+            y = first_row + url_gap
+            self.urlItem.prepareGeometryChange()
+            self.urlItem.setPos(0, y)
 
     def fromDict(self, d):
         Node.fromDict(self, d)
