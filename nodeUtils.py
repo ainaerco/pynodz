@@ -2,8 +2,10 @@ import re
 import os
 import json
 from random import randint
+import qtawesome as qta
 from qtpy.QtGui import QFont, QColor, QPixmap, QUndoStack
 from qtpy.QtCore import QObject, QMimeData
+from qtpy.QtWidgets import QApplication
 
 
 def getNodeClass(x):
@@ -219,6 +221,39 @@ class NodesOptions(QObject):
                 pix = pix.scaled(self.iconSize, self.iconSize)
             self.icons[icon] = pix
         return self.icons[icon]
+
+    def getAwesomeIcon(self, name, color=None):
+        """Get Qt Awesome icon by name (e.g., 'fa6s.file').
+
+        Args:
+            name: Icon identifier (prefix.name format)
+            color: Optional QColor, uses theme color if None
+
+        Returns:
+            QIcon instance
+        """
+        if color is None:
+            color = QApplication.palette().text().color()
+        return qta.icon(name, color=color)
+
+    def getAwesomePixmap(self, name, size=None, color=None):
+        """Get Qt Awesome icon as QPixmap for graphics items.
+
+        Args:
+            name: Icon identifier
+            size: Size in pixels, uses iconSize if None
+            color: Optional QColor, uses theme color if None
+
+        Returns:
+            QPixmap instance
+        """
+        if size is None:
+            size = self.iconSize
+        if color is None:
+            color = QApplication.palette().text().color()
+        # Convert icon to pixmap
+        icon = qta.icon(name, color=color)
+        return icon.pixmap(size, size)
 
     def saveTempImage(self, pixmap, name):
         pixmap.save()

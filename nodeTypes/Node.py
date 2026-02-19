@@ -39,14 +39,11 @@ class Node(QtWidgets.QGraphicsWidget):
         self.connector.setRect(QRectF(-5, -5, 10, 10))
         self.resizeItem = NodeResize(self, rect=QRectF(-12, -12, 12, 12))
         self.resizeItem.hide()
-        self.dropdown = DropDown(
-            self, nodeUtils.options, "resources/icons/dropdown_arrows.png"
-        )
+        self.dropdown = DropDown(self, nodeUtils.options)
         if self.collapsed is True:
             self.dropdown.setState(True)
 
     def init(self, d):
-
         self.resizeItem = None
         self.connector = None
         self.dropdown = None

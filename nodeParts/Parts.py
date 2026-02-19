@@ -8,8 +8,6 @@ import nodeUtils
 from nodeUtils import NodeMimeData
 from nodeCommand import CommandSetNodeAttribute
 
-RESIZE_SVG = QSvgRenderer("resources/resize.svg")
-
 
 class TitleItem(QtWidgets.QGraphicsTextItem):
     def __init__(self, text, parent, attr, title=False):
@@ -99,11 +97,14 @@ class NodeInput(QtWidgets.QGraphicsRectItem):
         painter.drawEllipse(self.boundingRect())
 
 
-class NodeResize(QGraphicsSvgItem):
+class NodeResize(QtWidgets.QGraphicsPixmapItem):
     def __init__(self, node, **kwargs):
-        QGraphicsSvgItem.__init__(self, node)
+        QtWidgets.QGraphicsPixmapItem.__init__(
+            self,
+            nodeUtils.options.getAwesomePixmap("fa6s.maximize", 16),
+            node,
+        )
         self.node = node
-        self.setSharedRenderer(RESIZE_SVG)
 
     def mousePressEvent(self, event):
         if event is None:
@@ -122,10 +123,9 @@ class NodeResize(QGraphicsSvgItem):
 
 
 class DropDown(QtWidgets.QGraphicsPixmapItem):
-    def __init__(self, parent, options, pixmap="resources/icons/dropdown.png"):
-        QtWidgets.QGraphicsPixmapItem.__init__(
-            self, options.getIcon(pixmap), parent
-        )
+    def __init__(self, parent, options):
+        pixmap = options.getAwesomePixmap("fa6s.caret-down", options.iconSize)
+        QtWidgets.QGraphicsPixmapItem.__init__(self, pixmap, parent)
         self.state = False
         self.parent = parent
         self.setShapeMode(

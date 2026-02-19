@@ -36,6 +36,7 @@ This file gives AI agents enough context to edit the codebase safely.
 - **Node class from type name**: `nodeUtils.getNodeClass(typ)` returns the class (e.g. `NodeShader`, `NodeGroup`).
 - **Attribute type → widget**: `nodeAttrs.getAttrByType(typ)` / `getAttrDefault(typ)`; extend both when adding a new attribute kind.
 - **Drag/drop**: `NodeMimeData` in `nodeUtils`; scene uses `Scene.dragEnterEvent` / `dragMoveEvent` / `dropEvent` and forwards to items that `acceptDrops()`.
+- **Icons**: Use Qt Awesome (Font Awesome 6) via `nodeUtils.options.getAwesomeIcon(name)` or `getAwesomePixmap(name, size)` for icons. The `getIcon(path)` method is for custom user-loaded icons only.
 
 ## Optional / external
 
@@ -61,3 +62,42 @@ uv run ruff format --check
 If it fails, fix formatting (e.g. run `uv run ruff format` to apply, then re-run the check).
 
 When adding features, prefer extending existing `Node*` and `NodeAttr*` classes and adding undo commands in `nodeCommand.py`; avoid adding new global singletons beyond `nodeUtils.options`.
+
+## Icons (Qt Awesome)
+
+The project uses **Qt Awesome** (Font Awesome 6) for icons instead of PNG files.
+
+### Available Icon Prefixes
+
+| Prefix | Description | Example |
+|--------|-------------|---------|
+| `fa6` | Font Awesome 6 Regular | `fa6.flag` |
+| `fa6s` | Font Awesome 6 Solid | `fa6s.flag` |
+| `fa6b` | Font Awesome 6 Brands | `fa6b.github` |
+| `mdi` | Material Design Icons | `mdi.home` |
+| `ph` | Phosphor | `ph.house` |
+| `ri` | Remix Icon | `ri.home-line` |
+| `msc` | Microsoft Codicons | `msc.github` |
+
+### Usage
+
+```python
+# For buttons and actions (returns QIcon)
+icon = nodeUtils.options.getAwesomeIcon("fa6s.folder-open")
+
+# For graphics items (returns QPixmap)
+pixmap = nodeUtils.options.getAwesomePixmap("fa6s.file", 18)
+
+# With custom color
+icon = nodeUtils.options.getAwesomeIcon("fa6s.palette", color=QColor("red"))
+```
+
+### Finding Icons
+
+- Run `uv run qta-browser` to open the icon browser
+- Browse online at https://fontawesome.com/icons
+
+### Legacy
+
+- `getIcon(path)` in `nodeUtils.py` - Still works for custom user icons (e.g., NodeBookmark)
+- Keep PNG files in `resources/icons/` only for special cases (e.g., `grid.png`, `transparent_small.png`)

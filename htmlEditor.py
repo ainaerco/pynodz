@@ -8,11 +8,12 @@ from qtpy.QtGui import (
     QTextCursor,
     QTextBlockFormat,
     QPalette,
-    QIcon,
     QFont,
     QUndoStack,
 )
 from qtpy import QtCore, QtWidgets
+
+import nodeUtils
 
 
 class HtmlEditor(QtWidgets.QDialog):
@@ -37,28 +38,28 @@ class HtmlEditor(QtWidgets.QDialog):
         toolSize = QtCore.QSize(25, 25)
 
         newButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_open.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.folder-open"), ""
         )
         newButton.setFlat(True)
         newButton.setFixedSize(toolSize)
         newButton.setToolTip("New scene")
 
         saveButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_save.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.floppy-disk"), ""
         )
         saveButton.setFlat(True)
         saveButton.setFixedSize(toolSize)
         saveButton.setToolTip("Save scene")
 
         undoButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_undo.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.rotate-left"), ""
         )
         undoButton.setFlat(True)
         undoButton.setFixedSize(toolSize)
         undoButton.setToolTip("Undo (Ctrl+Z)")
 
         redoButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_redo.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.rotate-right"), ""
         )
         redoButton.setFlat(True)
         redoButton.setFixedSize(toolSize)
@@ -82,59 +83,69 @@ class HtmlEditor(QtWidgets.QDialog):
             self.font_size.addItem(str(i))
         self.font_size.setFixedSize(QtCore.QSize(40, 25))
 
-        bold = QtWidgets.QPushButton(QIcon("resources/icons/lc_bold.png"), "")
+        bold = QtWidgets.QPushButton(
+            nodeUtils.options.getAwesomeIcon("fa6s.bold"), ""
+        )
         bold.setFixedSize(toolSize)
         bold.setFlat(True)
         italic = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_italic.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.italic"), ""
         )
         italic.setFixedSize(toolSize)
         italic.setFlat(True)
         underline = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_underline.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.underline"), ""
         )
         underline.setFixedSize(toolSize)
         underline.setFlat(True)
         unindent = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_decrementindent.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.outdent"), ""
         )
         unindent.setFixedSize(toolSize)
         unindent.setFlat(True)
         indent = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_incrementindent.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.indent"), ""
         )
         indent.setFixedSize(toolSize)
         indent.setFlat(True)
         bullet = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_defaultbullet.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.list-ul"), ""
         )
         bullet.setFixedSize(toolSize)
         bullet.setFlat(True)
         number = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_defaultnumbering.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.list-ol"), ""
         )
         number.setFixedSize(toolSize)
         number.setFlat(True)
         image = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_gallery.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.image"), ""
         )
         image.setFixedSize(toolSize)
         image.setFlat(True)
         table = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_inserttable.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.table"), ""
         )
         table.setFixedSize(toolSize)
         table.setFlat(True)
 
         self.align = QtWidgets.QComboBox()
         self.align.addItem("")
-        self.align.setItemIcon(0, QIcon("resources/icons/lc_alignleft.png"))
+        self.align.setItemIcon(
+            0, nodeUtils.options.getAwesomeIcon("fa6s.align-left")
+        )
         self.align.addItem("")
-        self.align.setItemIcon(1, QIcon("resources/icons/lc_aligncenter.png"))
+        self.align.setItemIcon(
+            1, nodeUtils.options.getAwesomeIcon("fa6s.align-center")
+        )
         self.align.addItem("")
-        self.align.setItemIcon(2, QIcon("resources/icons/lc_alignright.png"))
+        self.align.setItemIcon(
+            2, nodeUtils.options.getAwesomeIcon("fa6s.align-right")
+        )
         self.align.addItem("")
-        self.align.setItemIcon(3, QIcon("resources/icons/lc_alignjustify.png"))
+        self.align.setItemIcon(
+            3, nodeUtils.options.getAwesomeIcon("fa6s.align-justify")
+        )
         self.align.setFixedSize(QtCore.QSize(30, 25))
         self.align.setStyleSheet(
             "::drop-down { width: 0px; border-style: none}"

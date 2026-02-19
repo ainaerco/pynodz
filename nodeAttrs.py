@@ -188,6 +188,7 @@ class ItemRgbAnimation(QPropertyAnimation):
         self._item = item
 
     def afterAnimationStep(self, step):
+        """Custom step handler for RGB animation. Parent QPropertyAnimation has no afterAnimationStep."""
         item = self._item
         if (
             item is not None
@@ -790,7 +791,6 @@ class NodeAttrVector(NodeAttrFloat):
             self.numericTexts[i].setAlignment(Qt.AlignmentFlag.AlignRight)
 
     def paint(self, painter, option, widget=None):
-
         for i in range(self.dimension):
             painter.setBrush(self.darkBrush)
             painter.setPen(self.pen)
@@ -1060,9 +1060,7 @@ class NodeAttrImage(NodeAttr):
     def __init__(self, parent, options, attr):
         NodeAttr.__init__(self, parent, options, attr)
         self.pixmap = QtWidgets.QGraphicsPixmapItem(
-            options.getIcon(
-                "resources/icons/image_placeholder.png", resize=False
-            ),
+            options.getAwesomePixmap("fa6s.image", 64),
             self,
         )
         self.textItem = StringTextItem(self, self.options, attr["default"])
@@ -1294,7 +1292,6 @@ class NodeAttrArray(NodeAttr):
 
     @value.setter
     def value(self, value):
-
         self._value = value
         self.prepareGeometryChange()
         while len(self.items) > 0:
@@ -1894,9 +1891,7 @@ class NodeAttrSpline(NodeAttr):
             self, self.options, 0, r"%.2f", [0, 1]
         )
         self.numericText.setVisible(False)
-        self.dropdown = DropDown(
-            self, options, "resources/icons/dropdown_arrows.png"
-        )
+        self.dropdown = DropDown(self, options)
         self.dropdown.setState(True)
         self.collapsed = True
 
@@ -1998,9 +1993,7 @@ class NodeAttrRamp(NodeAttr):
         self.colorItem.setVisible(False)
         self.colorItem.setZValue(3)
         self.label = "Ramp::" + self.attr["name"]
-        self.dropdown = DropDown(
-            self, options, "resources/icons/dropdown_arrows.png"
-        )
+        self.dropdown = DropDown(self, options)
         self.dropdown.setState(True)
         self.collapsed = True
 
@@ -2131,9 +2124,17 @@ class PinUnpin(QtWidgets.QGraphicsPixmapItem):
             return
         self.state = state
         if self.state:
-            self.setPixmap(self.options.getIcon("resources/icons/unpin.png"))
+            self.setPixmap(
+                self.options.getAwesomePixmap(
+                    "fa6s.thumbtack", self.options.iconSize
+                )
+            )
         else:
-            self.setPixmap(self.options.getIcon("resources/icons/pin.png"))
+            self.setPixmap(
+                self.options.getAwesomePixmap(
+                    "fa6s.thumbtack-slash", self.options.iconSize
+                )
+            )
 
     def mousePressEvent(self, event):
         if event is not None and (event.buttons() & Qt.MouseButton.LeftButton):
@@ -2330,8 +2331,8 @@ class NodeAttrRgb(NodeAttr):
         self.p3 = QPointF()
         self.p4 = QPointF()
         self.colorPicker = ColorPicker(
-            self.options.getIcon(
-                "resources/icons/color_picker.png", resize=False
+            self.options.getAwesomePixmap(
+                "fa6s.eye-dropper", self.options.iconSize
             ),
             self,
         )

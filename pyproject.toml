@@ -10,6 +10,7 @@ dependencies = [
     "pytest>=9.0.2",
     "pytest-qt>=4.5.0",
     "pyyaml>=6.0",
+    "qtawesome>=1.4.0",
     "qtpy>=2.4.3",
     "ruff>=0.15.1",
 ]

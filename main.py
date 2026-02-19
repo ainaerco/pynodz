@@ -287,62 +287,58 @@ class NodeDialog(QtWidgets.QWidget):
         self._main_layout = QtWidgets.QVBoxLayout()
         toolBox = QtWidgets.QGroupBox()
         self.toolLayout = QtWidgets.QHBoxLayout(toolBox)
-        # self.toolLayout.setContentsMargins(-1, -1, -1, 0)
-        # self.toolLayout.setSpacing(0)
         toolSize = QSize(25, 25)
-        # line = QFrame()
-        # line.setFrameShape(QFrame.VLine)
-        # line.setFrameShadow(QFrame.Sunken)
-        # self.toolLayout.addWidget(line)
-        newButton = QtWidgets.QPushButton(QIcon("resources/icons/new.png"), "")
+        newButton = QtWidgets.QPushButton(
+            nodeUtils.options.getAwesomeIcon("fa6s.file"), ""
+        )
         newButton.setFlat(True)
         newButton.setFixedSize(toolSize)
         newButton.setToolTip("New scene")
         self.toolLayout.addWidget(newButton)
         openButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/lc_open.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.folder-open"), ""
         )
         openButton.setFlat(True)
         openButton.setFixedSize(toolSize)
         openButton.setToolTip("Open scene")
         self.toolLayout.addWidget(openButton)
         saveButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/diskette.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.floppy-disk"), ""
         )
         saveButton.setFlat(True)
         saveButton.setFixedSize(toolSize)
         saveButton.setToolTip("Save scene")
         self.toolLayout.addWidget(saveButton)
         alignVButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/alignv.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.arrows-up-down"), ""
         )
         alignVButton.setFlat(True)
         alignVButton.setFixedSize(toolSize)
         alignVButton.setToolTip("Align vertical")
         self.toolLayout.addWidget(alignVButton)
         alignHButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/alignh.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.arrows-left-right"), ""
         )
         alignHButton.setFlat(True)
         alignHButton.setFixedSize(toolSize)
         alignHButton.setToolTip("Align horizontal")
         self.toolLayout.addWidget(alignHButton)
         undoButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/undo.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.rotate-left"), ""
         )
         undoButton.setFlat(True)
         undoButton.setFixedSize(toolSize)
         undoButton.setToolTip("Undo (Ctrl+Z)")
         self.toolLayout.addWidget(undoButton)
         redoButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/redo.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.rotate-right"), ""
         )
         redoButton.setFlat(True)
         redoButton.setFixedSize(toolSize)
         redoButton.setToolTip("Redo (Ctrl+Y)")
         self.toolLayout.addWidget(redoButton)
         colorButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/color.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.palette"), ""
         )
         colorButton.setFlat(True)
         colorButton.setFixedSize(toolSize)
@@ -353,7 +349,7 @@ class NodeDialog(QtWidgets.QWidget):
         self.searchEdit.setFixedSize(QSize(250, 25))
         self.toolLayout.addWidget(self.searchEdit)
         searchButton = QtWidgets.QPushButton(
-            QIcon("resources/icons/find.png"), ""
+            nodeUtils.options.getAwesomeIcon("fa6s.magnifying-glass"), ""
         )
         searchButton.setFlat(True)
         searchButton.setFixedSize(toolSize)
@@ -468,7 +464,6 @@ class NodeDialog(QtWidgets.QWidget):
             QtWidgets.QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
         )  # BoundingRectViewportUpdate#FullViewportUpdate
         self.backImage = QImage("resources/icons/grid.png")
-        # self.viewport.setCacheMode(QtWidgets.QGraphicsView.CacheBackground)
         rh = getattr(QPainter, "RenderHint", type("_", (), {}))
         hints = (
             getattr(rh, "Antialiasing", 0x01)
@@ -480,7 +475,6 @@ class NodeDialog(QtWidgets.QWidget):
 
         self.attrView = QtWidgets.QGraphicsView(self)
         self.attrView.setMinimumWidth(200)
-        # self.attrView.setCacheMode(QtWidgets.QGraphicsView.CacheBackground)
         self.attrView.setViewportUpdateMode(
             QtWidgets.QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate
         )
@@ -508,10 +502,7 @@ class NodeDialog(QtWidgets.QWidget):
         self.splitter.addWidget(self.attrView)
         self._main_layout.addWidget(self.splitter)
         self.splitter.splitterMoved.connect(self.splitterMoved)
-        icon = QIcon("resources/icons/new.png")
-        # self.trayIcon = QtWidgets.QSystemTrayIcon(icon)
-        # self.trayIcon.activated.connect(self.trayIconClick)
-        # self.trayIcon.show()
+        icon = nodeUtils.options.getAwesomeIcon("fa6s.diagram-project")
         self._systemIcons = QtWidgets.QFileIconProvider()
         self.setWindowIcon(icon)
         self.setLayout(self._main_layout)
@@ -1244,19 +1235,23 @@ class View(QtWidgets.QGraphicsView):
                 QtWidgets.QApplication.keyboardModifiers()
                 & Qt.KeyboardModifier.ControlModifier
             ):
-                delta = getattr(event, "angleDelta", None)
-                d_y = delta.y() if delta is not None else 0
+                angle_delta = getattr(event, "angleDelta", None)
+                if callable(angle_delta):
+                    angle_delta = angle_delta()
+                d_y = (
+                    cast(Any, angle_delta).y() if angle_delta is not None else 0
+                )
                 n.setScale((d_y > 0 and n.scale() * 1.1) or n.scale() * 0.9)
-                # n.setPos(n.pos().x()+10,n.pos().y()+10)
-                # n.setRect(QRectF(0,0,n.rect.width()*1.1,n.rect.height()*1.1))
-                # for c in n.connections:c.updatePath()
                 return
             elif (
                 QtWidgets.QApplication.keyboardModifiers()
                 & Qt.KeyboardModifier.ShiftModifier
             ):
-                delta = getattr(event, "angleDelta", None)
-                if delta and delta.y() > 0:
+                angle_delta = getattr(event, "angleDelta", None)
+                if callable(angle_delta):
+                    angle_delta = angle_delta()
+                delta = angle_delta
+                if delta is not None and cast(Any, delta).y() > 0:
                     n.setRotation(n.rotation() + 10)
                 else:
                     n.setRotation(n.rotation() - 10)
