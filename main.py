@@ -64,7 +64,6 @@ from qtpy.QtWidgets import (
     QSlider,
     QSplitter,
     QSystemTrayIcon,
-    QTableWidget,
     QVBoxLayout,
     QWidget,
     QTableWidgetItem,
@@ -911,7 +910,7 @@ class NodeDialog(QWidget):
 
     def paste(self):
         p = QCursor.pos()
-        p = self.mapFromGlobal(p)
+        p = self.viewport.mapFromGlobal(p)
         p = self.viewport.mapToScene(p)
 
         d = {
@@ -1082,6 +1081,21 @@ class NodeDialog(QWidget):
         node_utils.options.clear_connections()
         node_utils.options.undoStack.clear()
         self.scene.clear()
+
+        # Create a simple node in the middle of the view
+        center = self.viewport.visibleRect().center()
+        nodeWidth = 90
+        nodeHeight = 24
+        d = {
+            "name": "Node",
+            "posx": center.x() - nodeWidth / 2,
+            "posy": center.y() - nodeHeight / 2,
+        }
+        command = CommandCreateNode(self, d)
+        node_utils.options.undoStack.push(command)
+        node_utils.options.set_selection(
+            node_utils.options.nodes[command.getName()]
+        )
 
     def delete(self):
         del_nodes = node_utils.options.get_selected_class(Node)
@@ -1460,7 +1474,6 @@ class View(QGraphicsView):
                 if isinstance(self.origin, QPointF)
                 else self.mapToScene(cast(Any, self.origin))
             )
-            scene = self.scene()
             for sel in node_utils.options.selected:
                 sel_any = cast(Any, sel)
                 if type(sel) is NodeGroup:

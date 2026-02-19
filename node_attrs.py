@@ -3,12 +3,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-
-# For parent/widget that pyright sees as QObject but is NodeAttr in practice
-def _attr_parent(obj: Any) -> Any:
-    return cast(Any, obj)
-
-
 from qtpy.QtGui import (
     QTextBlockFormat,
     QTextCursor,
@@ -71,6 +65,11 @@ if TYPE_CHECKING:
 from node_utils import NodeMimeData
 from node_parts.parts import DropDown
 from random import random
+
+
+# For parent/widget that pyright sees as QObject but is NodeAttr in practice
+def _attr_parent(obj: Any) -> Any:
+    return cast(Any, obj)
 
 
 def _is_node_shader(obj):
@@ -771,6 +770,8 @@ class NodeAttrInt(NodeAttrFloat):
         super().__init__(parent, options, attr)
         self.softmin = 0
         self.softmax = 1
+        if not self.numericText:
+            return
         self.numericText.mask = r"%d"
         self.numericText.setPlainText(self.numericText.mask % self._value)
         self.numericText.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -789,6 +790,8 @@ class NodeAttrInt(NodeAttrFloat):
         if "min" in self.attr.keys():
             value = max(self.attr["min"], value)
         self._value = int(value)
+        if not self.numericText:
+            return
         self.numericText.setPlainText("%d" % self._value)
         self.numericText.setAlignment(Qt.AlignmentFlag.AlignRight)
 
@@ -2191,22 +2194,19 @@ class PinUnpin(QGraphicsPixmapItem):
         if event is not None and (event.buttons() & Qt.MouseButton.LeftButton):
             self.setState(not self.state)
             p = self.parentItem()
-            if p is not None and hasattr(p, "attr"):
-                node = getattr(p, "_node", None)
-                if node is not None and hasattr(node, "pinUnpin"):
-                    node.pinUnpin(p.attr, self.state)
+            if isinstance(p, NodeAttr):
+                node = p._node
+                node.pinUnpin(p.attr, self.state)
 
 
 class ColorPicker(QGraphicsPixmapItem):
     def __init__(self, icon, parent):
         super().__init__(icon, parent)
-        # QDesktopWidget.screenCount()
 
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.onTimer)
         self.setShapeMode(QGraphicsPixmapItem.ShapeMode.BoundingRectShape)
-        # self.setMouseTracking(True)
 
     def onTimer(self):
         b = self.img.pixel(QCursor.pos())
@@ -2214,7 +2214,7 @@ class ColorPicker(QGraphicsPixmapItem):
         c.setRgb(b)
 
         p = self.parentItem()
-        if p is not None and hasattr(p, "value"):
+        if isinstance(p, NodeAttr):
             p.value = [c.redF(), c.greenF(), c.blueF()]
             p.update()
 
@@ -2266,13 +2266,7 @@ class NodePanel(NodeAttr):
         self.dropdown = DropDown(self, options)
         self.collapsed = True
         self.dropdown.setState(False)
-
-        # self.setCollapsed(True)
         self.setAcceptHoverEvents(True)
-        # self.timer = QTimer()
-        # self.timer.setInterval(1000)
-        # self.timer.setSingleShot(True)
-        # self.timer.timeout.connect(self.onTimer)
 
     def resize(self, width, height):
         self.dropdown.setPos(width - self.dropdown.boundingRect().width(), 0)
@@ -2358,15 +2352,6 @@ class NodePanel(NodeAttr):
 
     def onTimer(self):
         self.setCollapsed(True)
-
-    def hoverEnterEvent(self, event):
-        # self.timer.stop()
-        pass
-        # self.setCollapsed(False)
-
-    def hoverLeaveEvent(self, event):
-        # self.timer.start()
-        pass
 
 
 class NodeAttrRgb(NodeAttr):
@@ -2460,7 +2445,6 @@ class NodeAttrRgb(NodeAttr):
 
     @value.setter
     def value(self, value):
-        # print self,'value.setter'
         if self.attr["type"] == "RGBA":
             self.alpha = value[3]
         hsv = list(colorsys.rgb_to_hsv(value[0], value[1], value[2]))
@@ -2471,7 +2455,6 @@ class NodeAttrRgb(NodeAttr):
         self._value = value
         self.updateTriangle()
         self.updatePoint()
-        # self.update()
 
     def setHue(self, v):
         self.hue = v
@@ -2499,10 +2482,8 @@ class NodeAttrRgb(NodeAttr):
             self.val = lerp_2d_list(
                 (0.0, length(self.p3 - self.p2)), (0.0, 1.0), proj_len
             )
-        # print self.sat,self.val
 
     def updatePoint(self):
-        # print self,'updatePoint'
         self.circlePoint = QPointF(self.circleRadius * 0.85, 0.0)
         self.circlePoint = self.circleCenter + rotate(
             self.circlePoint, -self.hue * math.pi * 2
@@ -2538,17 +2519,12 @@ class NodeAttrRgb(NodeAttr):
             Vector(self.p2.x(), self.p2.y(), 0.0),
         )
 
-        # a = intersectRayLine(self.p3,-a,self.p1,self.p2)
         a = QPointF(a.x, a.y)
-
-        # if a is None:
-        #    a = QPointF(self.p2)
         a = self.p3 - a
         a = a * self.val
         self.point = self.p3 - a
 
     def updateTriangle(self):
-        # print self,'updateTriangle'
         radius = self.circleRadius * 0.7
         self.triangle = QPainterPath()
         a = -self.hue * math.pi * 2

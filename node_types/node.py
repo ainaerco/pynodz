@@ -239,6 +239,10 @@ class Node(QGraphicsWidget):
         return constraint
 
     def setRect(self, rect):
+        w = max(rect.width(), node_utils.options.minNodeWidth)
+        h = max(rect.height(), node_utils.options.minNodeHeight)
+        if w != rect.width() or h != rect.height():
+            rect = QRectF(rect.x(), rect.y(), w, h)
         rect_changed = rect != self._rect
         for c in self.connections:
             c.prepareGeometryChange()

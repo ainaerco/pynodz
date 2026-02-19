@@ -138,6 +138,8 @@ class NodesOptions(QObject):
         self.ids = -1
         self.iconSize = 18
         self.nodeRadius = 5
+        self.minNodeWidth = 40
+        self.minNodeHeight = 24
         self.colorSelector = "triangle"
         self.icons = {}
         self.nodes = {}

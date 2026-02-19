@@ -7,8 +7,6 @@ from qtpy.QtWidgets import (
     QGraphicsTextItem,
 )
 from qtpy.QtGui import QBrush, QPen, QCursor
-from qtpy.QtSvg import QSvgRenderer
-from qtpy.QtSvgWidgets import QGraphicsSvgItem
 import node_utils
 from node_utils import NodeMimeData
 
