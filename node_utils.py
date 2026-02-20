@@ -1,6 +1,4 @@
 import re
-import os
-import json
 from random import randint
 import qtawesome as qta
 from qtpy.QtGui import QFont, QColor, QPixmap, QUndoStack
@@ -9,10 +7,14 @@ from qtpy.QtWidgets import QApplication
 
 
 def get_node_class(x):
+    from node_plugins import get_node_type
+
+    cls = get_node_type(x)
+    if cls is not None:
+        return cls
     from node_types import (
         Node,  # noqa: F401
         NodeGroup,  # noqa: F401
-        NodeShader,  # noqa: F401
         NodeControl,  # noqa: F401
         NodeNote,  # noqa: F401
         NodeGraph,  # noqa: F401
@@ -133,13 +135,13 @@ class NodesOptions(QObject):
     def __init__(self):
         super().__init__()
         self.undoStack = QUndoStack(self)
-        self.arnold = self.load_arnold_settings()
         self.splineStep = 20
         self.ids = -1
         self.iconSize = 18
         self.nodeRadius = 5
         self.minNodeWidth = 40
         self.minNodeHeight = 24
+        self.maxPreferredNodeWidth = 400
         self.colorSelector = "triangle"
         self.icons = {}
         self.nodes = {}
@@ -191,23 +193,6 @@ class NodesOptions(QObject):
 
     def clear_connections(self):
         self.connections.clear()
-
-    def save_arnold_settings(self):
-        path = "arnold_settings.json"
-        js = json.dumps(self.arnold, sort_keys=False, indent=4)
-        f = open(path, "w")
-        f.write(js)
-        f.close()
-
-    def load_arnold_settings(self):
-        path = "arnold_settings.json"
-        result = {}
-        if not os.path.isfile(path):
-            return result
-        with open(path, "r") as f:
-            r = f.read()
-            result = json.loads(r)
-        return result
 
     def get_icon(self, icon, resize=True):
         if icon not in self.icons.keys():

@@ -73,8 +73,8 @@ def _attr_parent(obj: Any) -> Any:
 
 
 def _is_node_shader(obj):
-    """Avoid circular import: node_types.node_shader imports node_attrs."""
-    from node_types.node_shader import NodeShader
+    """Avoid circular import: shader plugin imports node_attrs."""
+    from node_plugins.shader import NodeShader
 
     return isinstance(obj, NodeShader)
 

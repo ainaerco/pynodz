@@ -1,5 +1,12 @@
+"""Shader node type.
+
+NodeShader is a node that displays shader attributes defined in external
+shader definitions (Arnold, demo shaders, etc.).
+"""
+
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import cast
 
 from qtpy.QtCore import Qt, QRectF
@@ -11,9 +18,7 @@ from qtpy.QtWidgets import (
     QMenu,
     QWidget,
 )
-from .node import Node
-from node_utils import NodeMimeData
-from node_parts.parts import NodeInput
+
 from node_attrs import (
     NodeAttrString,
     NodeAttrImage,
@@ -21,11 +26,14 @@ from node_attrs import (
     get_attr_by_type,
     NodePanel,
 )
-from copy import deepcopy
+from node_parts.parts import NodeInput
+from node_types.node import Node
+from node_utils import NodeMimeData, merge_dicts
 
 import node_utils
 from html_editor import HtmlEditor
-from node_utils import merge_dicts
+
+from . import settings
 
 
 class NodeShader(Node):
@@ -35,32 +43,26 @@ class NodeShader(Node):
         layout.setSpacing(7)
         layout.setContentsMargins(23, 20, 7, 7)
         self.setLayout(layout)
+        shader_settings = settings.get()
         if (
             self.dialog is not None
             and self.shader
             and self.shader in self.dialog.shaders.keys()
-            and self.shader in node_utils.options.arnold.keys()
+            and self.shader in shader_settings.keys()
         ):
-            if "_output" in node_utils.options.arnold[self.shader].keys():
-                self.connector.setType(
-                    node_utils.options.arnold[self.shader]["_output"]
-                )
+            if "_output" in shader_settings[self.shader].keys():
+                self.connector.setType(shader_settings[self.shader]["_output"])
             shader = self.dialog.shaders[self.shader]
             for a in shader["attributes_order"]:
                 attr = shader["attributes"][a]
                 if (
-                    attr["name"]
-                    in node_utils.options.arnold[self.shader].keys()
+                    attr["name"] in shader_settings[self.shader].keys()
                     and "_pin"
-                    in node_utils.options.arnold[self.shader][
-                        attr["name"]
-                    ].keys()
+                    in shader_settings[self.shader][attr["name"]].keys()
                 ):
                     self.pinUnpin(
                         attr,
-                        node_utils.options.arnold[self.shader][attr["name"]][
-                            "_pin"
-                        ],
+                        shader_settings[self.shader][attr["name"]]["_pin"],
                     )
 
     def addExtraControls(self):
@@ -124,10 +126,13 @@ class NodeShader(Node):
         return res
 
     def pinUnpin(self, attr, pinned):
-        node_utils.options.arnold = dict(
-            merge_dicts(
-                node_utils.options.arnold,
-                {self.shader: {attr["name"]: {"_pin": pinned}}},
+        shader_settings = settings.get()
+        settings.set_settings(
+            dict(
+                merge_dicts(
+                    shader_settings,
+                    {self.shader: {attr["name"]: {"_pin": pinned}}},
+                )
             )
         )
         if attr["name"] in self.pinnedAttributes.keys():
@@ -185,14 +190,14 @@ class NodeShader(Node):
 
         if connectedAttrs is not None and attr["name"] in connectedAttrs:
             item.setConnected(True)
+        shader_settings = settings.get()
         if (
-            self.shader in node_utils.options.arnold.keys()
-            and attr["name"] in node_utils.options.arnold[self.shader].keys()
-            and "_pin"
-            in node_utils.options.arnold[self.shader][attr["name"]].keys()
+            self.shader in shader_settings.keys()
+            and attr["name"] in shader_settings[self.shader].keys()
+            and "_pin" in shader_settings[self.shader][attr["name"]].keys()
         ):
             item.pin.setState(
-                node_utils.options.arnold[self.shader][attr["name"]]["_pin"]
+                shader_settings[self.shader][attr["name"]]["_pin"]
             )
         if "help" in attr.keys():
             item.setToolTip(attr["help"])
@@ -401,10 +406,13 @@ class NodeShader(Node):
                 node_utils.options.typeColors.keys(),
             )
             if text[1]:
-                node_utils.options.arnold = dict(
-                    merge_dicts(
-                        node_utils.options.arnold,
-                        {self.shader: {"_output": str(text[0])}},
+                shader_settings = settings.get()
+                settings.set_settings(
+                    dict(
+                        merge_dicts(
+                            shader_settings,
+                            {self.shader: {"_output": str(text[0])}},
+                        )
                     )
                 )
                 self.connector.setType(str(text[0]))

@@ -18,6 +18,8 @@ class TitleItem(QGraphicsTextItem):
         self.parent_item = parent
         self.attr = attr
         self.setFont(node_utils.options.titleFont)
+        self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton)
+        self.setFlag(QGraphicsTextItem.GraphicsItemFlag.ItemIsFocusable, True)
         if title:
             self.setDefaultTextColor(QColor(200, 200, 250))
 
@@ -62,6 +64,13 @@ class TitleItem(QGraphicsTextItem):
         self.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         self.textCursor().clearSelection()
         super().focusOutEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        self.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextEditorInteraction
+        )
+        self.setFocus(Qt.FocusReason.MouseFocusReason)
+        super().mouseDoubleClickEvent(event)
 
 
 class NodeInput(QGraphicsRectItem):

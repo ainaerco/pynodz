@@ -1,12 +1,16 @@
-"""Demo shader definitions for testing node_attrs.py without Arnold.
+"""Shader definitions and loaders.
 
-This module provides sample shader definitions that exercise all attribute
-widget types in node_attrs.py, allowing demonstration of the node editor
-without external dependencies.
+Provides demo shaders for testing and integrates with optional
+external Arnold/Rez modules if available.
 """
 
+import os
+from typing import Any
 
-def getDemoShaders():
+import yaml
+
+
+def get_demo_shaders() -> dict[str, Any]:
     """Return a dictionary of demo shader definitions.
 
     Each shader demonstrates different attribute types from node_attrs.py:
@@ -217,3 +221,43 @@ def getDemoShaders():
             "help": "Material color and properties",
         },
     }
+
+
+try:
+    from parseArnold import getArnoldShaders  # type: ignore[import-untyped]
+except ImportError:
+
+    def getArnoldShaders() -> dict[str, Any]:
+        return {}
+
+
+def load_context(filename: str) -> dict[str, Any]:
+    """Stub when rezContext is not available."""
+    return {}
+
+
+try:
+    from rezContext import load_context as _rez_load_context  # type: ignore[import-untyped]
+
+    load_context = _rez_load_context
+except ImportError:
+    pass
+
+
+def get_shaders() -> dict[str, Any]:
+    """Load shaders from file or external sources.
+
+    Priority:
+    1. arnold.yaml or arnold.json if present
+    2. parseArnold.getArnoldShaders() if available
+    3. Demo shaders as fallback
+    """
+    arnold_path = (
+        "arnold.yaml" if os.path.isfile("arnold.yaml") else "arnold.json"
+    )
+    if os.path.isfile(arnold_path):
+        with open(arnold_path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f.read()) or {}
+
+    arnold_shaders = getArnoldShaders()
+    return arnold_shaders if arnold_shaders else get_demo_shaders()

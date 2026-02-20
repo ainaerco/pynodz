@@ -12,7 +12,8 @@ This file gives AI agents enough context to edit the codebase safely.
 
 | Goal | Primary files |
 |------|----------------|
-| New node type | `node_types/node*.py`, then register in `node_utils.get_node_class` and `node_types/__init__.py` |
+| New node type (core) | `node_types/node*.py`, then register in `node_utils.get_node_class` and `node_types/__init__.py` |
+| New node type (plugin) | `node_plugins/<plugin>/node_*.py`, register via `register_node_type()` in plugin `__init__.py` |
 | New attribute widget (e.g. new type in UI) | `node_attrs.py`: add class, then `getAttrByType` / `getAttrDefault` |
 | Connection behavior / drawing | `node_parts/connection.py` |
 | Node chrome (title, inputs, resize, dropdown) | `node_parts/parts.py` |
@@ -20,14 +21,15 @@ This file gives AI agents enough context to edit the codebase safely.
 | Main window, menus, options, scene/view behavior | `main.py` (`NodeDialog`, `Scene`, `View`) |
 | Global options, node registry, undo stack | `node_utils.py` (`NodesOptions`) |
 | Node data (dict keys, defaults) | `node_types/node.py` `init()`, and shader defs if using NodeShader |
+| Plugin system | `node_plugins/__init__.py` — registry for node types and plugins |
 
 ## Conventions
 
 - **uv**: Use **uv** for all Python and test execution. Do not run `python` or `pytest` directly; use `uv run python ...` and `uv run pytest` (e.g. `uv run python main.py`, `uv run pytest`).
 - **Qt**: Use `qtpy` (not `PyQt6`/`PySide2` directly) so the backend can be switched.
 - **Node data**: Nodes are built from a dict `d` (e.g. `id`, `display_name`, `rect`, `rgb`, `collapsed`, `width`, `height`). Persistence is YAML/JSON; don't assume a DB.
-- **Singleton options**: `node_utils.options` holds selected nodes, undo stack, node radius, arnold defaults, etc. Use it for global state.
-- **Imports**: `node_attrs` is large; `node_types.nodeShader` imports it. To avoid circular imports, use late imports (e.g. `_isNodeShader` in `node_attrs`) or keep `node_types` → `node_attrs` one-way where possible.
+- **Singleton options**: `node_utils.options` holds selected nodes, undo stack, node radius, etc. Use it for global state. Shader-specific settings are in `node_plugins/shader/settings.py`.
+- **Imports**: `node_attrs` is large; plugins may import it. To avoid circular imports, use late imports or keep imports one-way where possible.
 - **Style**: Ruff line-length 80; type hints used in places (e.g. `node_command.py`).
 
 ### Naming Conventions
@@ -51,10 +53,32 @@ This file gives AI agents enough context to edit the codebase safely.
 
 ## Optional / external
 
-- **Arnold**: `parseArnold.getArnoldShaders()` — only if the module exists; otherwise stub returns `{}`.
-- **Rez**: `rezContext.loadContext(filename)` — same idea; stub returns `{}`.
+- **Arnold**: `parseArnold.getArnoldShaders()` — integrated via `node_plugins/shader/shaders.py`; only if the module exists.
+- **Rez**: `rezContext.load_context(filename)` — same idea; integrated via shader plugin.
 - **Images**: `images.imageDialog.PreviewFileDialog` or fallback `QFileDialog`.
 - **Geometry**: `_geometry.getBarycentric`, `Vector`, `Ray` — optional.
+
+## Plugin system
+
+The shader functionality is extracted into a plugin at `node_plugins/shader/`. This allows it to be deprecated or made optional later.
+
+### Structure
+
+```
+node_plugins/
+├── __init__.py          # Plugin registry (register_node_type, get_node_type)
+└── shader/
+    ├── __init__.py      # Plugin entry point, registers NodeShader
+    ├── node_shader.py   # NodeShader class
+    ├── shaders.py       # Demo shaders, Arnold/Rez loaders
+    └── settings.py      # Shader settings persistence (shader_settings.json)
+```
+
+### Creating a new plugin
+
+1. Create `node_plugins/<name>/__init__.py`
+2. Import and call `register_node_type("NodeX", NodeX)` 
+3. Import the plugin in `main.py` to activate it
 
 ## Tests
 

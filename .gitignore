@@ -7,4 +7,4 @@ downloads/
 *.egg-info/
 
 unused/
-arnold_settings.json
+shader_settings.json

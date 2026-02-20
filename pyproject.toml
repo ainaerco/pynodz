@@ -31,6 +31,7 @@ py-modules = [
     "main",
     "node_utils",
     "node_attrs",
+    "node_plugins",
     "node_command",
     "demo_shaders",
     "html_editor",

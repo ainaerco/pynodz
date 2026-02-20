@@ -1,11 +1,12 @@
 import webbrowser
-from qtpy.QtGui import QFont, QColor
+from qtpy.QtGui import QFont, QColor, QBrush, QPen
 from qtpy.QtCore import Qt, QRectF, QUrl, QFileInfo
 from qtpy.QtWidgets import (
     QApplication,
     QFileDialog,
     QGraphicsItem,
     QGraphicsPixmapItem,
+    QGraphicsRectItem,
     QMenu,
     QWidget,
 )
@@ -18,12 +19,25 @@ icon_size = 24
 ICONS = {}
 
 
+class UrlTitleItem(TitleItem):
+    """TitleItem that does not become editable on mouse clicks (URL is read-only)."""
+
+    def __init__(self, text, parent, attr, title=False):
+        super().__init__(text, parent, attr, title)
+        # Prevent focus on single click so no edit boundary/cursor appears
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsFocusable, False)
+
+    def mouseDoubleClickEvent(self, event):
+        # Do not enable text editing; let event propagate to parent to open URL
+        event.ignore()
+
+
 class NodeBookmark(Node):
     def __init__(self, d, dialog=None):
         super().__init__(d, dialog)
 
         self.url = d.get("url")
-        self.urlItem = TitleItem(self.url or "", self, "url")
+        self.urlItem = UrlTitleItem(self.url or "", self, "url")
         font = QFont()
         font.setUnderline(True)
         self.urlItem.setFont(font)
@@ -68,7 +82,22 @@ class NodeBookmark(Node):
                 self.nameItem.setVisible(
                     self.dialog.showNamesAction.isChecked()
                 )
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape)
+        # Clip only name/URL (and icon) to node shape; resize icon stays unclipped
+        self._clipContainer = QGraphicsRectItem(self)
+        self._clipContainer.setRect(
+            0, 0, self._rect.width(), self._rect.height()
+        )
+        self._clipContainer.setPen(QPen(Qt.PenStyle.NoPen))
+        self._clipContainer.setBrush(QBrush(Qt.BrushStyle.NoBrush))
+        self._clipContainer.setFlag(
+            QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape
+        )
+        self._clipContainer.setZValue(-1)
+        self._clipContainer.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+        self.nameItem.setParentItem(self._clipContainer)
+        self.urlItem.setParentItem(self._clipContainer)
+        if getattr(self, "iconItem", None) is not None:
+            self.iconItem.setParentItem(self._clipContainer)
 
     def addExtraControls(self):
         self.resizeItem = NodeResize(self, rect=QRectF(-12, -12, 12, 12))
@@ -76,22 +105,30 @@ class NodeBookmark(Node):
 
     def setRect(self, rect):
         super().setRect(rect)
-        # Icon visibility is controlled only by Options menu (main._applyOptionsVisibilityToScene)
-        # urlItem may not exist yet when setRect is called from Node.init -> fromDict during load
+        clipContainer = getattr(self, "_clipContainer", None)
+        if clipContainer is not None:
+            clipContainer.setRect(0, 0, self._rect.width(), self._rect.height())
+        icon_size = node_utils.options.iconSize
+        show_icons = (
+            self.dialog.showIconsAction.isChecked() if self.dialog else True
+        )
+        has_icon = getattr(self, "iconItem", None) is not None and show_icons
+        # Left-aligned: text to the right of the icon (or at left edge if no icon)
+        text_left = 5 + icon_size + 4 if has_icon else 5
+        if self.nameItem:
+            self.nameItem.prepareGeometryChange()
+            self.nameItem.setPos(text_left, 0)
         urlItem = getattr(self, "urlItem", None)
         if urlItem:
-            icon_size = node_utils.options.iconSize
-            # One title row + small gap (base Node uses 2*icon_size; we use less)
             url_gap = 4
             if self.dialog:
-                show_icons = self.dialog.showIconsAction.isChecked()
                 show_names = self.dialog.showNamesAction.isChecked()
                 first_row = icon_size if (show_icons or show_names) else 0
             else:
                 first_row = icon_size
             y = first_row + url_gap
             urlItem.prepareGeometryChange()
-            urlItem.setPos(0, y)
+            urlItem.setPos(text_left, y)
 
     def fromDict(self, d):
         Node.fromDict(self, d)
@@ -108,6 +145,9 @@ class NodeBookmark(Node):
         return res
 
     def mouseDoubleClickEvent(self, event):
+        if self.nameItem and self.nameItem.isUnderMouse():
+            super().mouseDoubleClickEvent(event)
+            return
         if self.url:
             webbrowser.open(self.url)
         else:
@@ -121,7 +161,6 @@ class NodeBookmark(Node):
         menu = QMenu(parent=parent if isinstance(parent, QWidget) else None)
         setIconAction = menu.addAction("Set icon")
         editNameAction = menu.addAction("Edit title")
-        editUrlAction = menu.addAction("Edit url")
         copyUrlAction = menu.addAction("Copy url")
         editKeywordsAction = menu.addAction("Edit keywords")
         action = menu.exec(event.screenPos())
@@ -140,11 +179,6 @@ class NodeBookmark(Node):
                 Qt.TextInteractionFlag.TextEditorInteraction
             )
             self.nameItem.setFocus(Qt.FocusReason.MouseFocusReason)
-        elif action == editUrlAction and self.urlItem is not None:
-            self.urlItem.setTextInteractionFlags(
-                Qt.TextInteractionFlag.TextEditorInteraction
-            )
-            self.urlItem.setFocus(Qt.FocusReason.MouseFocusReason)
         elif action == copyUrlAction and self.url is not None:
             clipboard = QApplication.clipboard()
             if clipboard is not None:

@@ -61,7 +61,7 @@ Node data is dict-based (`id`, `display_name`, `rect`, `rgb`, `collapsed`, `widt
 ## Optional modules
 
 - `parseArnold` — `getArnoldShaders()`; provide to enable Arnold shader nodes.
-- `rezContext` — `loadContext(filename)`; provide for Rez context loading.
+- `rezContext` — `load_context(filename)`; provide for Rez context loading.
 - `images.imageDialog` — `PreviewFileDialog`; fallback is `QFileDialog`.
 - `_geometry` — `getBarycentric`, `Vector`, `Ray` for geometry helpers.
 

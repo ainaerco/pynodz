@@ -14,6 +14,7 @@ from operator import methodcaller
 from qtpy.QtGui import (
     QAction,
     QShortcut,
+    QFontMetrics,
     QImage,
     QPainter,
     QBrush,
@@ -83,31 +84,24 @@ from node_command import (
 )
 from node_parts.connection import Connection
 
-from node_types import Node, NodeGroup, NodeShader, NodeBookmark
+from node_types import Node, NodeGroup, NodeBookmark
+
+from node_plugins.shader import (
+    NodeShader,
+    get_plugin_shaders,
+    load_context,
+)
+from node_plugins.shader.settings import load as load_shader_settings
+from node_plugins.shader.settings import save as save_shader_settings
+from node_plugins.shader.settings import (
+    set_settings,
+    get as get_shader_settings,
+)
 
 import urllib.error
 import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
-
-try:
-    from parseArnold import getArnoldShaders  # type: ignore[import-untyped]
-except ImportError:
-
-    def getArnoldShaders():
-        return {}
-
-
-from demo_shaders import getDemoShaders
-
-
-try:
-    from rezContext import loadContext  # type: ignore[import-untyped]
-except ImportError:
-
-    def loadContext(filename):
-        return {}
-
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -318,6 +312,8 @@ class NodeDialog(QWidget):
         self.shaders = None
         self.outline = False
         self._main_layout = QVBoxLayout()
+        self._main_layout.setContentsMargins(4, 4, 4, 4)
+        self._main_layout.setSpacing(4)
         toolBox = QGroupBox()
         self.toolLayout = QHBoxLayout(toolBox)
         toolSize = QSize(25, 25)
@@ -540,17 +536,8 @@ class NodeDialog(QWidget):
         self.setWindowIcon(icon)
         self.setLayout(self._main_layout)
         self.readSettings()
-        arnold_path = (
-            "arnold.yaml" if os.path.isfile("arnold.yaml") else "arnold.json"
-        )
-        if os.path.isfile(arnold_path):
-            with open(arnold_path, "r", encoding="utf-8") as f:
-                self.shaders = yaml.safe_load(f.read()) or {}
-        else:
-            arnold_shaders = getArnoldShaders()
-            self.shaders = (
-                arnold_shaders if arnold_shaders else getDemoShaders()
-            )
+        load_shader_settings()
+        self.shaders = get_plugin_shaders()
 
         self.rebuildRecentFiles()
         if self.recentFiles:
@@ -887,6 +874,16 @@ class NodeDialog(QWidget):
             d["name"] = soup.title.string
         else:
             d["name"] = "NodeBookmark"
+        # Size width to fit title, capped at max preferred node width
+        title_text = d.get("name") or ""
+        padding = 60  # icon + dropdown + margins
+        opts = node_utils.options
+        text_w = QFontMetrics(opts.titleFont).horizontalAdvance(title_text)
+        preferred_w = min(
+            text_w + padding,
+            opts.maxPreferredNodeWidth,
+        )
+        d["width"] = max(preferred_w, opts.minNodeWidth)
         keywords = [
             x.get("content")
             for x in soup.find_all("meta", attrs={"name": "keywords"})
@@ -956,7 +953,7 @@ class NodeDialog(QWidget):
             self.clear()
             op_file = None
             if os.path.splitext(self.filename)[-1] == ".rxt":
-                dump = loadContext(self.filename)
+                dump = load_context(self.filename)
             else:
                 with open(self.filename, "r", encoding="utf-8") as op_file:
                     text = op_file.read()
@@ -1127,7 +1124,7 @@ class NodeDialog(QWidget):
             elif QMessageBox.Cancel == ret:
                 event.ignore()
         """
-        node_utils.options.save_arnold_settings()
+        save_shader_settings()
         node_utils.options.undoStack.clear()
         self.writeSettings()
         for d in self.findChildren(QDialog):
@@ -1203,14 +1200,18 @@ class Scene(QGraphicsScene):
                 if x.attr["default"] != x._value
             ]
             for a in attrs:
-                node_utils.options.arnold = dict(
-                    merge_dicts(
-                        node_utils.options.arnold,
-                        {
-                            n.shader: {
-                                a.attr["name"]: {"_default": a.attr["default"]}
-                            }
-                        },
+                set_settings(
+                    dict(
+                        merge_dicts(
+                            get_shader_settings(),
+                            {
+                                n.shader: {
+                                    a.attr["name"]: {
+                                        "_default": a.attr["default"]
+                                    }
+                                }
+                            },
+                        )
                     )
                 )
         elif action == revert:

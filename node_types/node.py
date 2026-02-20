@@ -293,6 +293,15 @@ class Node(QGraphicsWidget):
                 self.pen = QPen(QColor(0), 0)
 
     def mouseDoubleClickEvent(self, event):
+        if event is None:
+            return
+        # Forward double-click to title so name can be edited when clicking on it
+        if self.nameItem is not None and self.nameItem.isVisible():
+            nameLocal = self.nameItem.mapFromParent(event.pos())
+            if self.nameItem.boundingRect().contains(nameLocal):
+                self.nameItem.mouseDoubleClickEvent(event)
+                return
+
         def getChilds(node):
             childs = node.childs
             for c in childs:
